@@ -1,0 +1,15 @@
+{
+    "projectName": "Orunmilang",
+    "languages": [{
+        "id": "orunmilang",
+        "grammar": "src/language/orunmilang.langium",
+        "fileExtensions": [".oru", ".orun", ".orunmilang", ".yo"],
+        "textMate": {
+            "out": "syntaxes/orunmilang.tmLanguage.json"
+        },
+        "monarch": {
+            "out": "src/syntaxes/orunmilang.monarch.ts"
+        }
+    }],
+    "out": "src/language/generated"
+}
