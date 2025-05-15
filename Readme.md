@@ -1,8 +1,9 @@
 # Orunmilang
 
 <p align="center">
-  <img src="../orunmilang/images/orunilang.png" alt="Orunmilang Logo" width="300"/>
+  <img src="orunmilang/images/orunmilang.png" alt="Orunmilang Logo" width="300"/>
 </p>
+
 
 **Orunmilang** is a minimal, beginner-friendly programming language inspired by Yoruba syntax and designed to teach programming fundamentals through culturally relevant constructs.
 
