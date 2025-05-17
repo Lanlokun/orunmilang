@@ -15,37 +15,41 @@ export function generateJavaScript(program: Program, filePath: string, destinati
     const data = extractDestinationAndName(filePath, destination);
     const generatedFilePath = `${path.join(data.destination, data.name)}.js`;
 
-    // Create variable declarations
-    const declarations = program.declarations.map(decl =>
-        `let ${decl.name} = ${valueToString(decl.value)};`
-    );
+    // Extract different statement types from program.statements
+    const declarations = program.statements
+        .filter(stmt => stmt.$type === 'VariableDeclaration')
+        .map(stmt => {
+            const decl = stmt as any;
+            return `let ${decl.name} = ${valueToString(decl.value)};`;
+        });
 
-    // Create assignments
-    const assignments = program.assignments.map(assign =>
-        `${assign.variable} = ${valueToString(assign.value)};`
-    );
+    const assignments = program.statements
+        .filter(stmt => stmt.$type === 'VariableAssignment')
+        .map(stmt => {
+            const assign = stmt as any;
+            return `${assign.variable?.ref?.name ?? 'undefined'} = ${valueToString(assign.value)};`;
+        });
 
-    // Create print statements
-    const prints = program.statements.map(print =>
-        `console.log(${valueToString(print.value)});`
-    );
+    const prints = program.statements
+        .filter(stmt => stmt.$type === 'PrintStatement')
+        .map(stmt => {
+            const print = stmt as any;
+            return `console.log(${valueToString(print.value)});`;
+        });
 
     const fileNode = expandToNode`
         "use strict";
-        
+
         ${joinToNode(declarations, decl => decl, { appendNewLineIfNotEmpty: true })}
         ${joinToNode(assignments, assign => assign, { appendNewLineIfNotEmpty: true })}
         ${joinToNode(prints, print => print, { appendNewLineIfNotEmpty: true })}
     `.appendNewLineIfNotEmpty();
 
-    // Ensure the destination folder exists
     if (!fs.existsSync(data.destination)) {
         fs.mkdirSync(data.destination, { recursive: true });
     }
 
-    // Write the generated JavaScript code to the file
     fs.writeFileSync(generatedFilePath, toString(fileNode));
-
     return generatedFilePath;
 }
 

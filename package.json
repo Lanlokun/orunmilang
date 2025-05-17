@@ -1,15 +1,13 @@
 {
     "name": "orunmilang",
-    "description": "Please enter a brief description here",
+    "description": "Orunmilang is a Yoruba programming language. This VS Code extension offers syntax highlighting, validation, and a run command to develop and execute Orunmilang scripts seamlessly.",
     "version": "0.0.1",
-    "files": [
-        "bin",
-        "out",
-        "src"
-    ],
     "type": "module",
+    "icon": "images/orunmilang.png",
+
     "scripts": {
-        "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
+        "build": "tsc -b tsconfig.src.json && node esbuild.mjs && npm run build:cli",
+        "build:cli": "rm -rf bin && tsc -p tsconfig.cli.json",
         "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
         "lint": "eslint src --ext ts",
         "langium:generate": "langium generate",
@@ -25,38 +23,39 @@
         "test": "vitest run"
     },
     "dependencies": {
-        "langium": "~3.5.0",
-        "vscode-languageclient": "~9.0.1",
-        "vscode-languageserver": "~9.0.1",
-        "chalk": "~5.3.0",
-        "commander": "~11.0.0",
         "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
         "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
+        "chalk": "~5.3.0",
+        "commander": "~11.0.0",
+        "langium": "~3.5.0",
         "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
         "monaco-editor-wrapper": "~4.0.2",
         "monaco-languageclient": "~8.1.1",
-        "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
+        "vscode-languageclient": "~9.0.1",
+        "vscode-languageserver": "~9.0.1"
     },
     "devDependencies": {
+        "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
         "@types/node": "^18.0.0",
-        "@typescript-eslint/parser": "~7.3.1",
-        "@typescript-eslint/eslint-plugin": "~7.3.1",
-        "eslint": "~8.57.0",
-        "langium-cli": "~3.5.0",
-        "typescript": "~5.1.6",
         "@types/vscode": "~1.67.0",
+        "@typescript-eslint/eslint-plugin": "~7.3.1",
+        "@typescript-eslint/parser": "~7.3.1",
         "concurrently": "~8.2.1",
         "esbuild": "~0.20.2",
-        "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
-        "vite": "~5.2.7",
+        "eslint": "~8.57.0",
         "http-server": "~14.1.1",
-        "vitest": "~1.4.0"
+        "langium-cli": "~3.5.0",
+        "ts-node": "^10.9.2",
+        "typescript": "~5.1.6",
+        "vite": "~5.2.7",
+        "vitest": "~1.4.0",
+        "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
     },
     "volta": {
         "node": "18.19.1",
         "npm": "10.2.4"
     },
-    "displayName": "orunmilang",
+    "displayName": "Orunmilang",
     "engines": {
         "vscode": "^1.67.0",
         "node": ">=18.0.0"
@@ -70,10 +69,30 @@
                 "id": "orunmilang",
                 "aliases": [
                     "orunmilang",
-                    "orunmilang"
+                    "orunmila"
                 ],
-                "extensions": [".oru", ".orun", ".orunmilang", ".yo"],
+                "extensions": [
+                    ".oru",
+                    ".orun",
+                    ".orunmilang",
+                    ".yo"
+                ],
                 "configuration": "./language-configuration.json"
+            }
+        ],
+        "menus": {
+            "commandPalette": [
+            {
+                "command": "orunmilang.run",
+                "when": "editorLangId == orunmilang",
+                "group": "navigation"
+            }
+            ]
+        },
+        "commands": [
+            {
+            "command": "orunmilang.run",
+            "title": "Run Orunmilang Program"
             }
         ],
         "grammars": [
@@ -85,10 +104,12 @@
         ]
     },
     "activationEvents": [
-        "onLanguage:orunmilang"
+        "onLanguage:orunmilang",
+        "onCommand:orunmilang.run"
     ],
     "main": "./out/extension/main.cjs",
     "bin": {
-        "orunmilang-cli": "./bin/cli.js"
+        "orunmilang": "./bin/cli/orunmilang-cli.js"
     }
+
 }

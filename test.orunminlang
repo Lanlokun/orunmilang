@@ -1,0 +1,8 @@
+pa name pẹlu "Ọmọ tuntun";
+pa age pẹlu 25;
+
+name fi "Lanlokun";
+age fi 26;
+
+tẹ(name);
+tẹ(age);
