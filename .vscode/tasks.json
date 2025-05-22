@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build orunmilang",
+            "label": "Run Orunmilang",
             "command": "npm run langium:generate && npm run build",
             "type": "shell",
             "group": {

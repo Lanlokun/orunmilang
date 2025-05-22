@@ -581,7 +581,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                   "elements": [
                     {
                       "$type": "Keyword",
-                      "value": "="
+                      "value": "=="
                     },
                     {
                       "$type": "Keyword",

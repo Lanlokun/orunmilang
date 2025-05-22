@@ -9,6 +9,7 @@ import type {
     IfStatement,
     WhileStatement,
     VariableReference,
+    LogicalOrExpression
 } from './generated/ast.js';
 import type { OrunmilangServices } from './orunmilang-module.js';
 
@@ -125,4 +126,12 @@ export class OrunmilangValidator {
             accept('error', 'Variable reference must refer to a declared variable', { node: variableRef });
         }
     }
+    checkLogicalOrExpression(expr: LogicalOrExpression, accept: ValidationAcceptor): void {
+    if (!expr.left) {
+        accept('error', 'LogicalOrExpression must have a left operand', { node: expr });
+    }
+    if (expr.rights && expr.rights.some(right => !right)) {
+        accept('error', 'LogicalOrExpression contains invalid right operand', { node: expr });
+    }
+}
 }

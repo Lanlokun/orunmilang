@@ -1,5 +1,15 @@
 // src/language/orunmilang-interpreter.ts
 
+
+
+function safeStringify(obj: any, space?: number): string {
+        const replacer = (key: string, value: any) => {
+            if (key === '$container' || key === '$cstNode' || key === 'root' || key === 'container') return undefined;
+            return value;
+        };
+        return JSON.stringify(obj, replacer, space);
+    }
+
 export function simulateExecution(program: any): string {
     const variables: Record<string, any> = {};
     let outputBuffer = '';
@@ -27,13 +37,21 @@ export function simulateExecution(program: any): string {
                     outputBuffer += stringify(output) + '\n';
                     break;
 
-                case 'IfStatement':
-                    if (evaluateExpression(statement.condition, variables)) {
-                        executeStatements(statement.statements);
-                    } else if (statement.elseStatements) {
-                        executeStatements(statement.elseStatements);
+              case 'IfStatement':
+                    if (!statement.condition || !statement.condition.$type) {
+                        console.error('Invalid IfStatement condition:', {
+                            $type: statement.condition?.$type,
+                            variable: statement.condition?.variable?.$refText
+                        });
+                        outputBuffer += "⚠️ Invalid If condition.\n";
+                        break;
                     }
-                    break;
+                if (evaluateExpression(statement.condition, variables)) {
+                    executeStatements(statement.statements);
+                } else if (statement.elseStatements) {
+                    executeStatements(statement.elseStatements);
+                }
+                break;
 
                 case 'WhileStatement':
                     while (evaluateExpression(statement.condition, variables)) {
@@ -57,15 +75,18 @@ export function simulateExecution(program: any): string {
     return outputBuffer;
 }
 
-function evaluateExpression(expr: any, variables: Record<string, any>): any {
-    if (!expr || !expr.$type) {
-        console.error("Invalid expression encountered:", expr);
-        throw new Error(`Invalid expression node or missing $type: ${JSON.stringify(expr)}`);
-    }
-   // Basic recursive evaluation of expression trees based on your grammar operators
+    function evaluateExpression(expr: any, variables: Record<string, any>): any {
+        if (!expr) {
+            throw new Error('evaluateExpression called with undefined or null expr');
+        }
+
+        if (!expr || !expr.$type) {
+            console.error("Invalid expression encountered:", expr);
+            throw new Error(`Invalid expression node or missing $type: ${JSON.stringify(expr)}`);
+        }
+
     switch (expr.$type) {
         case 'LogicalOrExpression':
-            // Evaluate left then any rights with OR
             let leftVal = evaluateExpression(expr.left, variables);
             for (const right of expr.rights ?? []) {
                 leftVal = leftVal || evaluateExpression(right, variables);
@@ -80,41 +101,55 @@ function evaluateExpression(expr: any, variables: Record<string, any>): any {
             return leftAndVal;
 
         case 'EqualityExpression':
-              // rest of your code
             let result = evaluateExpression(expr.left, variables);
-            for (let i = 0; i < expr.rights.length; i++) {
+            for (let i = 0; i < (expr.rights?.length || 0); i++) {
                 const right = evaluateExpression(expr.rights[i], variables);
                 const op = expr.op[i];
-                if (op === '=') result = result === right;
-                else if (op === '!=') result = result !== right;
-                else throw new Error(`Unknown equality operator: ${op}`);
-            }
-            return result;
-
-        case 'RelationalExpression':
-            // Handle first relational operator only (like <, >, <=, >=)
-            const leftRel = evaluateExpression(expr.left, variables);
-            const rightRel = evaluateExpression(expr.rights?.[0], variables);
-            const op = expr.op?.[0];
-            if (typeof leftRel === 'number' && typeof rightRel === 'number') {
-                switch (op) {
-                    case '<': return leftRel < rightRel;
-                    case '<=': return leftRel <= rightRel;
-                    case '>': return leftRel > rightRel;
-                    case '>=': return leftRel >= rightRel;
+                if (op === '==') {
+                    // Special handling for boolean literals
+                    if (typeof result === 'boolean' || typeof right === 'boolean') {
+                        result = Boolean(result) === Boolean(right);
+                    } else {
+                        result = result === right;
+                    }
+                } else if (op === '!=') {
+                    result = result !== right;
+                } else {
+                    throw new Error(`Unknown equality operator: ${op}`);
                 }
             }
-            return false;
+            return result;
+            
+            case 'RelationalExpression':
+                if (!expr.left) {
+                    throw new Error(`RelationalExpression missing left operand at line ${expr.$cstNode?.range?.start?.line || 'unknown'}`);
+                }
+                const leftRel = evaluateExpression(expr.left, variables);
+                if (!expr.op || expr.op.length === 0 || !expr.rights || expr.rights.length === 0) {
+                    return leftRel; // Return left operand if no relational operation
+                }
+                const rightRel = evaluateExpression(expr.rights[0], variables);
+                const op = expr.op[0];
+                if (typeof leftRel === 'number' && typeof rightRel === 'number') {
+                    switch (op) {
+                        case '<': return leftRel < rightRel;
+                        case '<=': return leftRel <= rightRel;
+                        case '>': return leftRel > rightRel;
+                        case '>=': return leftRel >= rightRel;
+                        default: throw new Error(`Unknown relational operator: ${op}`);
+                    }
+                }
+                return false;
 
        case 'AdditiveExpression':
             if (!expr.left || !expr.rights || !expr.op) {
-                console.error('Malformed AdditiveExpression:', expr);
+                // console.error('Malformed AdditiveExpression:', expr);
                 throw new Error('AdditiveExpression missing left, rights, or op');
             }
             let sum = evaluateExpression(expr.left, variables);
             for (let i = 0; i < (expr.op?.length || 0); i++) {
                 if (!expr.rights[i]) {
-                    console.error('Missing right operand in AdditiveExpression:', expr);
+                    // console.error('Missing right operand in AdditiveExpression:', expr);
                     throw new Error('Missing right operand in AdditiveExpression');
                 }
                 const op = expr.op[i];
@@ -135,18 +170,21 @@ function evaluateExpression(expr: any, variables: Record<string, any>): any {
             }
             return prod;
 
-        case 'PrimaryExpression':
-            // PrimaryExpression can wrap other expressions or literals
-            if (expr.NumericLiteral) return Number(expr.NumericLiteral.value);
-            if (expr.TextLiteral) return expr.TextLiteral.value.slice(1, -1);
-            if (expr.BooleanLiteral) return expr.BooleanLiteral.bool === 'bẹẹni';
-            if (expr.VariableReference) {
-                const v = expr.VariableReference.variable?.$refText;
-                return v ? variables[v] : '<undefined variable>';
+       case 'PrimaryExpression':
+        if (expr.NumericLiteral) return Number(expr.NumericLiteral.value);
+        if (expr.TextLiteral) return expr.TextLiteral.value.slice(1, -1);
+        if (expr.BooleanLiteral) return expr.BooleanLiteral.bool === 'bẹẹni';
+        if (expr.VariableReference) {
+            const v = expr.VariableReference.variable?.$refText;
+            if (!v) {
+                throw new Error('Invalid VariableReference in PrimaryExpression');
             }
-            if (expr.Expression) return evaluateExpression(expr.Expression, variables);
-            break;
+            return variables[v] ?? '<undefined variable>';
+        }
 
+        
+    if (expr.Expression) return evaluateExpression(expr.Expression, variables);
+    throw new Error('Invalid PrimaryExpression: ' + JSON.stringify(expr));
         case 'TextLiteral':
             return expr.value.slice(1, -1);
 
@@ -164,42 +202,35 @@ function evaluateExpression(expr: any, variables: Record<string, any>): any {
             return '<unknown expression>';
     }
 }
-export function getValue(expr: any, variables: Record<string, any> = {}): any {
-    if (!expr) return '<empty expression>';
 
+function getValue(expr: any, variables: Record<string, any>): any {
+    if (!expr || !expr.$type) {
+        throw new Error(`Invalid expression: ${safeStringify(expr, 2)}`);
+    }
     switch (expr.$type) {
-        case 'TextLiteral': {
+        case 'SimpleAssignment':
+            return getValue(expr.value, variables);
+        case 'ExpressionAssignment':
+            return evaluateExpression(expr.value, variables);
+        case 'PrintableValue':
+            return getValue(expr.TextLiteral || expr.NumericLiteral || expr.BooleanLiteral || expr.VariableReference, variables);
+        case 'TextLiteral':
             const v = expr.value;
             if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
                 return v.slice(1, -1);
             }
             return v;
-        }
-
         case 'NumericLiteral':
             return Number(expr.value);
-
         case 'BooleanLiteral':
             return expr.bool === 'bẹẹni';
-
         case 'VariableReference':
             const varRef = expr.variable?.$refText;
             if (!varRef) {
                 return `<invalid or unresolved variable>`;
             }
             return variables[varRef] ?? `<undefined variable: ${varRef}>`;
-
-        case 'Expression':
-        case 'AdditiveExpression':
-        case 'MultiplicativeExpression':
-        case 'RelationalExpression':
-        case 'EqualityExpression':
-        case 'LogicalAndExpression':
-        case 'LogicalOrExpression':
-            return evaluateExpression(expr, variables);
-
         default:
-            console.error(`Unknown expression type in getValue: ${expr.$type}`, expr);
-            return '<unknown expression>';
+            return evaluateExpression(expr, variables);
     }
 }

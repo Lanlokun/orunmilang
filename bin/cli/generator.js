@@ -2,17 +2,10 @@ import { expandToNode, joinToNode, toString } from 'langium/generate';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
-/**
- * Generate JavaScript code from an Orunmilang program.
- * @param program The parsed Orunmilang program
- * @param filePath The path of the source Orunmilang file
- * @param destination The destination folder for the generated JavaScript file
- * @returns The path to the generated JavaScript file
- */
 export function generateJavaScript(program, filePath, destination) {
     const data = extractDestinationAndName(filePath, destination);
     const generatedFilePath = `${path.join(data.destination, data.name)}.js`;
-    // Extract different statement types from program.statements
+    // Existing statements
     const declarations = program.statements
         .filter(stmt => stmt.$type === 'VariableDeclaration')
         .map(stmt => {
@@ -31,12 +24,48 @@ export function generateJavaScript(program, filePath, destination) {
         const print = stmt;
         return `console.log(${valueToString(print.value)});`;
     });
+    // New: If Statements
+    const ifStatements = program.statements
+        .filter(stmt => stmt.$type === 'IfStatement')
+        .map(stmt => {
+        const ifStmt = stmt;
+        const condition = valueToString(ifStmt.condition);
+        // assuming ifStmt.thenBlock.statements is an array of statements inside if
+        const thenStatements = ifStmt.thenBlock.statements
+            .map((s) => statementToString(s))
+            .join('\n');
+        let elseStatements = '';
+        if (ifStmt.elseBlock) {
+            elseStatements = ifStmt.elseBlock.statements
+                .map((s) => statementToString(s))
+                .join('\n');
+            return `if (${condition}) {\n${thenStatements}\n} else {\n${elseStatements}\n}`;
+        }
+        return `if (${condition}) {\n${thenStatements}\n}`;
+    });
+    // New: While Statements
+    const whileStatements = program.statements
+        .filter(stmt => stmt.$type === 'WhileStatement')
+        .map(stmt => {
+        const whileStmt = stmt;
+        const condition = valueToString(whileStmt.condition);
+        const bodyStatements = whileStmt.body.statements
+            .map((s) => statementToString(s))
+            .join('\n');
+        return `while (${condition}) {\n${bodyStatements}\n}`;
+    });
+    // Combine all statements into one output node
+    const allStatements = [
+        ...declarations,
+        ...assignments,
+        ...prints,
+        ...ifStatements,
+        ...whileStatements,
+    ];
     const fileNode = expandToNode `
         "use strict";
 
-        ${joinToNode(declarations, decl => decl, { appendNewLineIfNotEmpty: true })}
-        ${joinToNode(assignments, assign => assign, { appendNewLineIfNotEmpty: true })}
-        ${joinToNode(prints, print => print, { appendNewLineIfNotEmpty: true })}
+        ${joinToNode(allStatements, stmt => stmt, { appendNewLineIfNotEmpty: true })}
     `.appendNewLineIfNotEmpty();
     if (!fs.existsSync(data.destination)) {
         fs.mkdirSync(data.destination, { recursive: true });
@@ -44,23 +73,50 @@ export function generateJavaScript(program, filePath, destination) {
     fs.writeFileSync(generatedFilePath, toString(fileNode));
     return generatedFilePath;
 }
-/**
- * Convert a value to its JavaScript string representation.
- * @param value The value to be converted
- * @returns The string representation of the value
- */
+// Helper to convert any statement node to JS code string
+function statementToString(stmt) {
+    switch (stmt.$type) {
+        case 'VariableDeclaration':
+            return `let ${stmt.name} = ${valueToString(stmt.value)};`;
+        case 'VariableAssignment':
+            return `${stmt.variable?.ref?.name ?? 'undefined'} = ${valueToString(stmt.value)};`;
+        case 'PrintStatement':
+            return `console.log(${valueToString(stmt.value)});`;
+        case 'IfStatement': {
+            const condition = valueToString(stmt.condition);
+            const thenBlock = stmt.thenBlock.statements.map(statementToString).join('\n');
+            let elseBlock = '';
+            if (stmt.elseBlock) {
+                elseBlock = stmt.elseBlock.statements.map(statementToString).join('\n');
+                return `if (${condition}) {\n${thenBlock}\n} else {\n${elseBlock}\n}`;
+            }
+            return `if (${condition}) {\n${thenBlock}\n}`;
+        }
+        case 'WhileStatement': {
+            const condition = valueToString(stmt.condition);
+            const body = stmt.body.statements.map(statementToString).join('\n');
+            return `while (${condition}) {\n${body}\n}`;
+        }
+        // Add more cases here for other statement types
+        default:
+            return '// Unsupported statement: ' + stmt.$type;
+    }
+}
 function valueToString(value) {
-    if (value?.$type === 'TextLiteral') {
-        return `"${value.value}"`; // Wrap text literals in quotes
+    if (!value)
+        return 'undefined';
+    switch (value.$type) {
+        case 'TextLiteral':
+            return `"${value.value}"`;
+        case 'NumericLiteral':
+            return value.value.toString();
+        case 'BooleanLiteral':
+            return value.value ? 'true' : 'false';
+        case 'VariableReference':
+            return value.name?.ref?.name || value.name?.error?.message || 'undefined';
+        // Add support for other literal types like ListLiteral if needed
+        default:
+            return 'undefined';
     }
-    else if (value?.$type === 'NumericLiteral') {
-        return value.value.toString(); // Numeric values are directly used
-    }
-    else if (value?.$type === 'VariableReference') {
-        // Handle variable references by resolving their name or error
-        const refName = value.name.ref?.name || value.name.error?.message || 'undefined';
-        return refName;
-    }
-    return 'undefined'; // Default fallback for unsupported types
 }
 //# sourceMappingURL=generator.js.map
