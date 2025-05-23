@@ -1,9 +1,15 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/lanlokun/orunmilang/main/orunmilang/images/orunmilang.png" alt="Orunmilang Logo" width="300"/>
+</p>
+
 # Orunmilang
+**Orunmilang** is a minimal, beginner-friendly programming language inspired by the syntax and linguistic structure of Yoruba, a major African language spoken by millions in Nigeria, Benin, and the global diaspora. Designed to teach programming fundamentals through culturally relevant constructs, Orunmilang bridges the gap between technology and indigenous knowledge systems. The name **Orunmilang** derives from Yoruba words: *òrúnmìlà* (the deity of wisdom and divination in Yoruba spirituality) and *ọ̀rọ̀* (word or language), symbolizing a "language of wisdom." This reflects its mission to empower learners by making coding intuitive and culturally resonant.
 
-A minimal, beginner-friendly programming language inspired by Yoruba syntax, designed to teach programming fundamentals through culturally relevant constructs.
+Orunmilang was created as part of a master’s coursework project in Open Source Software at Nankai University, China, in 2025. It aims to democratize programming education by offering a tool that resonates with African and diasporic learners while being accessible to anyone interested in culturally inspired computing. In a world where technology often reflects Western paradigms, Orunmilang promotes diversity in tech by embedding Yoruba linguistic patterns, such as verb-object structures and tonal expressiveness, into its syntax. This makes it a powerful educational tool and a potential domain-specific language (DSL) for cultural computing, fostering inclusivity and representation in the global tech landscape.
 
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/lanlokun/orunmilang/issues)
 
 
 ## 🌍 Vision & Roadmap
@@ -220,4 +226,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 
 ## 📝 Report Issues: GitHub Issues
+
+
 

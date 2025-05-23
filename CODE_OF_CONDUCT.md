@@ -27,7 +27,7 @@ This Code of Conduct applies within project spaces (e.g., GitHub repository, iss
 
 ## Enforcement
 
-Report unacceptable behavior to [mlanlokun@egmail.com]. Maintainers may remove contributions or ban contributors for behavior violating this Code of Conduct.
+Report unacceptable behavior to [mlanlokun@gmail.com]. Maintainers may remove contributions or ban contributors for behavior violating this Code of Conduct.
 
 ## Attribution
 
