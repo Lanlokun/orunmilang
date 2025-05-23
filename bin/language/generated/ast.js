@@ -34,6 +34,10 @@ export const Statement = 'Statement';
 export function isStatement(item) {
     return reflection.isInstance(item, Statement);
 }
+export const UnaryExpression = 'UnaryExpression';
+export function isUnaryExpression(item) {
+    return reflection.isInstance(item, UnaryExpression);
+}
 export const AdditiveExpression = 'AdditiveExpression';
 export function isAdditiveExpression(item) {
     return reflection.isInstance(item, AdditiveExpression);
@@ -41,6 +45,14 @@ export function isAdditiveExpression(item) {
 export const BooleanLiteral = 'BooleanLiteral';
 export function isBooleanLiteral(item) {
     return reflection.isInstance(item, BooleanLiteral);
+}
+export const ElseIfStatement = 'ElseIfStatement';
+export function isElseIfStatement(item) {
+    return reflection.isInstance(item, ElseIfStatement);
+}
+export const ElseStatement = 'ElseStatement';
+export function isElseStatement(item) {
+    return reflection.isInstance(item, ElseStatement);
 }
 export const EqualityExpression = 'EqualityExpression';
 export function isEqualityExpression(item) {
@@ -69,6 +81,10 @@ export function isLogicalOrExpression(item) {
 export const MultiplicativeExpression = 'MultiplicativeExpression';
 export function isMultiplicativeExpression(item) {
     return reflection.isInstance(item, MultiplicativeExpression);
+}
+export const NotExpr = 'NotExpr';
+export function isNotExpr(item) {
+    return reflection.isInstance(item, NotExpr);
 }
 export const NumericLiteral = 'NumericLiteral';
 export function isNumericLiteral(item) {
@@ -116,7 +132,7 @@ export function isWhileStatement(item) {
 }
 export class OrunmilangAstReflection extends langium.AbstractAstReflection {
     getAllTypes() {
-        return [AdditiveExpression, BooleanLiteral, EqualityExpression, Expression, FunctionCall, FunctionDeclaration, IfStatement, LogicalAndExpression, LogicalOrExpression, MultiplicativeExpression, NamedElement, NumericLiteral, Parameter, PrimaryExpression, PrintStatement, PrintableValue, Program, RelationalExpression, ReturnStatement, Statement, TextLiteral, VariableAssignment, VariableDeclaration, VariableReference, WhileStatement];
+        return [AdditiveExpression, BooleanLiteral, ElseIfStatement, ElseStatement, EqualityExpression, Expression, FunctionCall, FunctionDeclaration, IfStatement, LogicalAndExpression, LogicalOrExpression, MultiplicativeExpression, NamedElement, NotExpr, NumericLiteral, Parameter, PrimaryExpression, PrintStatement, PrintableValue, Program, RelationalExpression, ReturnStatement, Statement, TextLiteral, UnaryExpression, VariableAssignment, VariableDeclaration, VariableReference, WhileStatement];
     }
     computeIsSubtype(subtype, supertype) {
         switch (subtype) {
@@ -124,13 +140,13 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
             case NumericLiteral:
             case TextLiteral:
             case VariableReference: {
-                return this.isSubtype(PrimaryExpression, supertype) || this.isSubtype(PrintableValue, supertype);
-            }
-            case Expression: {
                 return this.isSubtype(PrimaryExpression, supertype);
             }
+            case Expression: {
+                return this.isSubtype(PrimaryExpression, supertype) || this.isSubtype(PrintableValue, supertype);
+            }
             case FunctionCall: {
-                return this.isSubtype(PrimaryExpression, supertype) || this.isSubtype(PrintableValue, supertype) || this.isSubtype(Statement, supertype);
+                return this.isSubtype(PrimaryExpression, supertype) || this.isSubtype(Statement, supertype);
             }
             case FunctionDeclaration:
             case IfStatement:
@@ -142,6 +158,10 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
             }
             case LogicalOrExpression: {
                 return this.isSubtype(Expression, supertype);
+            }
+            case NotExpr:
+            case PrimaryExpression: {
+                return this.isSubtype(UnaryExpression, supertype);
             }
             case Parameter: {
                 return this.isSubtype(NamedElement, supertype);
@@ -191,6 +211,23 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
                     ]
                 };
             }
+            case ElseIfStatement: {
+                return {
+                    name: ElseIfStatement,
+                    properties: [
+                        { name: 'condition' },
+                        { name: 'statements', defaultValue: [] }
+                    ]
+                };
+            }
+            case ElseStatement: {
+                return {
+                    name: ElseStatement,
+                    properties: [
+                        { name: 'statements', defaultValue: [] }
+                    ]
+                };
+            }
             case EqualityExpression: {
                 return {
                     name: EqualityExpression,
@@ -225,7 +262,8 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
                     name: IfStatement,
                     properties: [
                         { name: 'condition' },
-                        { name: 'elseStatements', defaultValue: [] },
+                        { name: 'elseBlock' },
+                        { name: 'elseIfs', defaultValue: [] },
                         { name: 'statements', defaultValue: [] }
                     ]
                 };
@@ -255,6 +293,14 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
                         { name: 'left' },
                         { name: 'op', defaultValue: [] },
                         { name: 'rights', defaultValue: [] }
+                    ]
+                };
+            }
+            case NotExpr: {
+                return {
+                    name: NotExpr,
+                    properties: [
+                        { name: 'expression' }
                     ]
                 };
             }

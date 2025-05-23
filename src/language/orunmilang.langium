@@ -4,28 +4,34 @@ entry Program:
     statements+=Statement*;
 
 Statement:
-    VariableDeclaration ';'
-    | VariableAssignment ';'
-    | PrintStatement ';'
+    VariableDeclaration
+    | VariableAssignment
+    | PrintStatement
     | IfStatement
     | WhileStatement
     | FunctionDeclaration
-    | ReturnStatement ';'
-    | FunctionCall ';';  // Changed from FunctionCallStatement to FunctionCall
+    | ReturnStatement
+    | FunctionCall;
 
 VariableDeclaration:
-    'pa' name=ID 'pẹlu' value=Expression;
+    'pa' name=ID 'pẹlu' value=Expression ';';
 
 VariableAssignment:
-    variable=[VariableDeclaration] 'fi' value=Expression;
+    variable=[VariableDeclaration] 'fi' value=Expression ';';
 
 PrintStatement:
-    'tẹ' '(' value=PrintableValue ')';
-
+    'tẹ' '(' value=PrintableValue ')' ';';
 
 IfStatement:
     'ti' '(' condition=Expression ')' ('ṣe')? '{' statements+=Statement* '}'
-    ('bí' 'kò' 'ṣe' '{' elseStatements+=Statement* '}')?;
+    (elseIfs+=ElseIfStatement)*
+    (elseBlock=ElseStatement)?;
+
+ElseIfStatement:
+    'bí' 'kò' 'ṣe' 'ti' '(' condition=Expression ')' '{' statements+=Statement* '}';
+
+ElseStatement:
+    'bí' 'kò' 'ṣe' '{' statements+=Statement* '}';
 
 WhileStatement:
     'nigba' '(' condition=Expression ')' 'ṣe' '{' statements+=Statement* '}';
@@ -37,7 +43,7 @@ Parameter:
     name=ID;
 
 ReturnStatement:
-    'pada' (value=Expression)?;
+    'pada' (value=Expression)? ';';
 
 FunctionCall:
     'pe' ref=[FunctionDeclaration] '(' (arguments+=Expression (',' arguments+=Expression)*)? ')';
@@ -66,8 +72,14 @@ AdditiveExpression:
     ( (op+=('+' | '-')) rights+=MultiplicativeExpression )*;
 
 MultiplicativeExpression:
-    left=PrimaryExpression
-    ( (op+=('*' | '/')) rights+=PrimaryExpression )*;
+    left=UnaryExpression
+    ( (op+=('*' | '/' | '%')) rights+=UnaryExpression )*;
+
+NotExpr:
+    '!' expression=UnaryExpression;
+
+UnaryExpression:
+    NotExpr | PrimaryExpression;
 
 PrimaryExpression:
     NumericLiteral
@@ -78,7 +90,7 @@ PrimaryExpression:
     | '(' Expression ')';
 
 PrintableValue:
-    TextLiteral | NumericLiteral | BooleanLiteral | VariableReference | FunctionCall;
+    Expression;
 
 TextLiteral:
     value=STRING;
@@ -86,13 +98,11 @@ TextLiteral:
 NumericLiteral:
     value=NUMBER;
 
-
 NamedElement:
     VariableDeclaration | Parameter;
 
 VariableReference:
     variable=[NamedElement];
-
 
 terminal BEE_NI: 'bẹẹni';
 terminal RARA: 'rara';

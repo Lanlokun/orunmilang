@@ -1,4 +1,5 @@
-        // src/language/orunmilang-interpreter.ts
+
+// src/language/orunmilang-interpreter.ts
 
         function safeStringify(obj: any, space?: number): string {
             const replacer = (key: string, value: any) => {
@@ -34,7 +35,7 @@
                             outputBuffer += stringify(output) + '\n';
                             break;
 
-                        case 'IfStatement':
+                       case 'IfStatement':
                             if (!statement.condition || !statement.condition.$type) {
                                 console.error('Invalid IfStatement condition:', {
                                     $type: statement.condition?.$type,
@@ -44,9 +45,24 @@
                                 break;
                             }
                             if (evaluateExpression(statement.condition, localVars)) {
-                                executeStatements(statement.statements, localVars);
-                            } else if (statement.elseStatements) {
-                                executeStatements(statement.elseStatements, localVars);
+                                const result: { type: string, value: any } = executeStatements(statement.statements, localVars);
+                                if (result.type === 'return') return result;
+                            } else {
+                                // Check elseif branches
+                                let elseIfExecuted = false;
+                                for (const elseIfStmt of statement.elseIfs ?? []) {
+                                    if (evaluateExpression(elseIfStmt.condition, localVars)) {
+                                        const result: { type: string, value: any } = executeStatements(elseIfStmt.statements, localVars);
+                                        if (result.type === 'return') return result;
+                                        elseIfExecuted = true;
+                                        break;
+                                    }
+                                }
+                                // If no elseif was executed, check else block
+                                if (!elseIfExecuted && statement.elseBlock) {
+                                    const result: { type: string, value: any } = executeStatements(statement.elseBlock.statements, localVars);
+                                    if (result.type === 'return') return result;
+                                }
                             }
                             break;
                             case 'WhileStatement':
@@ -150,6 +166,10 @@
                         }
                         return result;
 
+                    case 'NotExpr':
+                        return !evaluateExpression(expr.expression, variables);
+
+
                     case 'RelationalExpression':
                         if (!expr.left) {
                             throw new Error(`RelationalExpression missing left operand at line ${expr.$cstNode?.range?.start?.line || 'unknown'}`);
@@ -194,6 +214,7 @@
                             const right = evaluateExpression(expr.rights[i], variables);
                             if (op === '*') prod *= right;
                             else if (op === '/') prod /= right;
+                            else if (op === '%') prod %= right;
                         }
                         return prod;
 

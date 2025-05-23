@@ -28,25 +28,25 @@ async function main() {
     const doc = langiumDocumentFactory.fromString(code, URI.file(filePath));
     await documentBuilder.build([doc]);
 
-    // ⚠️ Get parser errors manually
+    // Get parser errors manually
     const parserErrors: Diagnostic[] = doc.parseResult.parserErrors.map(err => {
-    const startLine = err.token?.startLine ?? 1;
-    const startColumn = err.token?.startColumn ?? 1;
-    const endLine = err.token?.endLine ?? startLine;
-    const endColumn = err.token?.endColumn ?? startColumn;
+        const startLine = err.token?.startLine ?? 1;
+        const startColumn = err.token?.startColumn ?? 1;
+        const endLine = err.token?.endLine ?? startLine;
+        const endColumn = err.token?.endColumn ?? startColumn;
 
-    return {
-        message: err.message,
-        severity: DiagnosticSeverity.Error,
-        range: {
-            start: { line: startLine - 1, character: startColumn - 1 },
-            end: { line: endLine - 1, character: endColumn - 1 }
-        },
-        source: 'parser'
-    };
-});
+        return {
+            message: err.message,
+            severity: DiagnosticSeverity.Error,
+            range: {
+                start: { line: startLine - 1, character: startColumn - 1 },
+                end: { line: endLine - 1, character: endColumn - 1 }
+            },
+            source: 'parser'
+        };
+    });
 
-    // ✅ Combine with validation diagnostics
+    // Combine with validation diagnostics
     const validationDiagnostics: Diagnostic[] = doc.diagnostics ?? [];
     const allDiagnostics: Diagnostic[] = [...parserErrors, ...validationDiagnostics];
 
@@ -61,7 +61,11 @@ async function main() {
     }
 
     const output = simulateExecution(doc.parseResult.value);
-    console.log(output);
+    if (output.trim()) {
+        console.log(output.trim());
+    } else if (output) {
+        console.log('(empty output)');
+    }
 }
 
 main().catch(err => {

@@ -15,6 +15,7 @@ export function registerValidationChecks(services) {
             LogicalOrExpression: validator.checkLogicalOrExpression.bind(validator),
             FunctionDeclaration: validator.checkFunctionDeclaration.bind(validator),
             ReturnStatement: validator.checkReturnStatement.bind(validator),
+            MultiplicativeExpression: validator.checkMultiplicativeExpression.bind(validator),
             FunctionCall: validator.checkFunctionCall.bind(validator),
         };
         registry.register(checks, validator);
@@ -94,10 +95,26 @@ export class OrunmilangValidator {
                 property: 'statements'
             });
         }
-        if (ifStmt.elseStatements && ifStmt.elseStatements.length === 0) {
+        // Validate elseif statements
+        for (const elseIfStmt of ifStmt.elseIfs ?? []) {
+            if (!elseIfStmt.condition) {
+                accept('error', 'Else-if statement must have a condition', {
+                    node: elseIfStmt,
+                    property: 'condition'
+                });
+            }
+            if (!elseIfStmt.statements || elseIfStmt.statements.length === 0) {
+                accept('warning', 'Consider adding statements to the else-if body', {
+                    node: elseIfStmt,
+                    property: 'statements'
+                });
+            }
+        }
+        // Validate else block
+        if (ifStmt.elseBlock && ifStmt.elseBlock.statements.length === 0) {
             accept('warning', 'Consider adding statements to the else body', {
-                node: ifStmt,
-                property: 'elseStatements'
+                node: ifStmt.elseBlock,
+                property: 'statements'
             });
         }
     }
@@ -113,6 +130,27 @@ export class OrunmilangValidator {
                 node: whileStmt,
                 property: 'statements'
             });
+        }
+    }
+    checkMultiplicativeExpression(expr, accept) {
+        const inferType = (e) => {
+            switch (e.$type) {
+                case 'NumericLiteral': return 'number';
+                case 'TextLiteral': return 'string';
+                case 'BooleanLiteral': return 'boolean';
+                case 'VariableReference': return 'unknown';
+                case 'FunctionCall': return 'unknown';
+                default: return 'unknown';
+            }
+        };
+        const leftType = inferType(expr.left);
+        const rightTypes = expr.rights?.map(r => inferType(r)) || [];
+        for (let i = 0; i < (expr.op?.length || 0); i++) {
+            const op = expr.op[i];
+            const rightType = rightTypes[i];
+            if (op === '%' && (leftType !== 'number' || rightType !== 'number')) {
+                accept('error', 'Modulo operator (%) requires numeric operands', { node: expr });
+            }
         }
     }
     checkVariableReference(ref, accept) {
@@ -182,8 +220,8 @@ export class OrunmilangValidator {
             }
             if (stmt.$type === 'IfStatement') {
                 const thenReturns = this.checkAllPathsReturn(stmt.statements);
-                const elseReturns = stmt.elseStatements
-                    ? this.checkAllPathsReturn(stmt.elseStatements)
+                const elseReturns = stmt.elseBlock
+                    ? this.checkAllPathsReturn(stmt.elseBlock.statements)
                     : false;
                 return thenReturns && elseReturns;
             }

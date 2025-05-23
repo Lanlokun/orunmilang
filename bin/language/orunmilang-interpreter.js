@@ -39,10 +39,28 @@ export function simulateExecution(program) {
                         break;
                     }
                     if (evaluateExpression(statement.condition, localVars)) {
-                        executeStatements(statement.statements, localVars);
+                        const result = executeStatements(statement.statements, localVars);
+                        if (result.type === 'return')
+                            return result;
                     }
-                    else if (statement.elseStatements) {
-                        executeStatements(statement.elseStatements, localVars);
+                    else {
+                        // Check elseif branches
+                        let elseIfExecuted = false;
+                        for (const elseIfStmt of statement.elseIfs ?? []) {
+                            if (evaluateExpression(elseIfStmt.condition, localVars)) {
+                                const result = executeStatements(elseIfStmt.statements, localVars);
+                                if (result.type === 'return')
+                                    return result;
+                                elseIfExecuted = true;
+                                break;
+                            }
+                        }
+                        // If no elseif was executed, check else block
+                        if (!elseIfExecuted && statement.elseBlock) {
+                            const result = executeStatements(statement.elseBlock.statements, localVars);
+                            if (result.type === 'return')
+                                return result;
+                        }
                     }
                     break;
                 case 'WhileStatement':
@@ -138,6 +156,8 @@ export function simulateExecution(program) {
                     }
                 }
                 return result;
+            case 'NotExpr':
+                return !evaluateExpression(expr.expression, variables);
             case 'RelationalExpression':
                 if (!expr.left) {
                     throw new Error(`RelationalExpression missing left operand at line ${expr.$cstNode?.range?.start?.line || 'unknown'}`);
@@ -184,6 +204,8 @@ export function simulateExecution(program) {
                         prod *= right;
                     else if (op === '/')
                         prod /= right;
+                    else if (op === '%')
+                        prod %= right;
                 }
                 return prod;
             case 'PrimaryExpression':

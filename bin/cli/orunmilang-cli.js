@@ -20,7 +20,7 @@ async function main() {
     const documentBuilder = services.shared.workspace.DocumentBuilder;
     const doc = langiumDocumentFactory.fromString(code, URI.file(filePath));
     await documentBuilder.build([doc]);
-    // ⚠️ Get parser errors manually
+    // Get parser errors manually
     const parserErrors = doc.parseResult.parserErrors.map(err => {
         const startLine = err.token?.startLine ?? 1;
         const startColumn = err.token?.startColumn ?? 1;
@@ -36,7 +36,7 @@ async function main() {
             source: 'parser'
         };
     });
-    // ✅ Combine with validation diagnostics
+    // Combine with validation diagnostics
     const validationDiagnostics = doc.diagnostics ?? [];
     const allDiagnostics = [...parserErrors, ...validationDiagnostics];
     if (allDiagnostics.length > 0) {
@@ -47,7 +47,12 @@ async function main() {
         process.exit(1);
     }
     const output = simulateExecution(doc.parseResult.value);
-    console.log(output);
+    if (output.trim()) {
+        console.log(output.trim());
+    }
+    else if (output) {
+        console.log('(empty output)');
+    }
 }
 main().catch(err => {
     console.error('Error running Orunmilang file:', err);

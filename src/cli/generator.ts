@@ -10,7 +10,6 @@ export function generateJavaScript(program: Program, filePath: string, destinati
     const data = extractDestinationAndName(filePath, destination);
     const generatedFilePath = `${path.join(data.destination, data.name)}.js`;
 
-    // Generate all statements
     const allStatements = program.statements.map(stmt => statementToString(stmt));
 
     const fileNode = expandToNode`
@@ -27,7 +26,6 @@ export function generateJavaScript(program: Program, filePath: string, destinati
     return generatedFilePath;
 }
 
-// Helper to convert any statement node to JS code string
 function statementToString(stmt: any): string {
     switch (stmt.$type) {
         case 'VariableDeclaration':
@@ -39,12 +37,22 @@ function statementToString(stmt: any): string {
         case 'IfStatement': {
             const condition = valueToString(stmt.condition);
             const thenBlock = stmt.statements.map(statementToString).join('\n');
-            let elseBlock = '';
-            if (stmt.elseStatements?.length > 0) {
-                elseBlock = stmt.elseStatements.map(statementToString).join('\n');
-                return `if (${condition}) {\n${thenBlock}\n} else {\n${elseBlock}\n}`;
+            let elseIfBlocks = '';
+            if (stmt.elseIfs?.length > 0) {
+                elseIfBlocks = stmt.elseIfs
+                    .map((elseIf: any) => {
+                        const elseIfCondition = valueToString(elseIf.condition);
+                        const elseIfBody = elseIf.statements.map(statementToString).join('\n');
+                        return `else if (${elseIfCondition}) {\n${elseIfBody}\n}`;
+                    })
+                    .join(' ');
             }
-            return `if (${condition}) {\n${thenBlock}\n}`;
+            let elseBlock = '';
+            if (stmt.elseBlock) {
+                elseBlock = stmt.elseBlock.statements.map(statementToString).join('\n');
+                elseBlock = `else {\n${elseBlock}\n}`;
+            }
+            return `if (${condition}) {\n${thenBlock}\n} ${elseIfBlocks}${elseBlock}`;
         }
         case 'WhileStatement': {
             const condition = valueToString(stmt.condition);
@@ -56,11 +64,10 @@ function statementToString(stmt: any): string {
             const body = stmt.statements.map(statementToString).join('\n');
             return `function ${stmt.name}(${params}) {\n${body}\n}`;
         }
-        case 'FunctionCall': { // Handle both expression and statement contexts
-            const funcName = stmt.ref?.name ?? 'undefined';
+        case 'FunctionCall': {
+            const funcName = stmt.ref?.ref?.name ?? 'undefined';
             const args = stmt.arguments?.map((arg: any) => valueToString(arg)).join(', ') ?? '';
-            return `${funcName}(${args})`;  // Semicolon added at Statement level
-
+            return `${funcName}(${args});`;
         }
         case 'ReturnStatement': {
             return stmt.value ? `return ${valueToString(stmt.value)};` : 'return;';
@@ -70,12 +77,11 @@ function statementToString(stmt: any): string {
     }
 }
 
-// Helper to convert any value or expression to JS code string
 function valueToString(value: any): string {
     if (!value) return 'undefined';
     switch (value.$type) {
         case 'TextLiteral':
-            return `"${value.value.replace(/"/g, '\\"')}"`; // Escape quotes
+            return `"${value.value.replace(/"/g, '\\"')}"`;
         case 'NumericLiteral':
             return value.value.toString();
         case 'BooleanLiteral':
@@ -104,6 +110,8 @@ function valueToString(value: any): string {
                 (acc: string, right: any, i: number) => `${acc} ${value.op[i]} ${valueToString(right)}`,
                 valueToString(value.left)
             ) ?? valueToString(value.left);
+        case 'NotExpr':
+            return `!${valueToString(value.expression)}`;
         case 'PrimaryExpression':
             if (value.BooleanLiteral) return valueToString(value.BooleanLiteral);
             if (value.NumericLiteral) return valueToString(value.NumericLiteral);
