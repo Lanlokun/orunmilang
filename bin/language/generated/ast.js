@@ -42,6 +42,14 @@ export const EqualityExpression = 'EqualityExpression';
 export function isEqualityExpression(item) {
     return reflection.isInstance(item, EqualityExpression);
 }
+export const FunctionCall = 'FunctionCall';
+export function isFunctionCall(item) {
+    return reflection.isInstance(item, FunctionCall);
+}
+export const FunctionDeclaration = 'FunctionDeclaration';
+export function isFunctionDeclaration(item) {
+    return reflection.isInstance(item, FunctionDeclaration);
+}
 export const IfStatement = 'IfStatement';
 export function isIfStatement(item) {
     return reflection.isInstance(item, IfStatement);
@@ -62,6 +70,10 @@ export const NumericLiteral = 'NumericLiteral';
 export function isNumericLiteral(item) {
     return reflection.isInstance(item, NumericLiteral);
 }
+export const Parameter = 'Parameter';
+export function isParameter(item) {
+    return reflection.isInstance(item, Parameter);
+}
 export const PrintStatement = 'PrintStatement';
 export function isPrintStatement(item) {
     return reflection.isInstance(item, PrintStatement);
@@ -73,6 +85,10 @@ export function isProgram(item) {
 export const RelationalExpression = 'RelationalExpression';
 export function isRelationalExpression(item) {
     return reflection.isInstance(item, RelationalExpression);
+}
+export const ReturnStatement = 'ReturnStatement';
+export function isReturnStatement(item) {
+    return reflection.isInstance(item, ReturnStatement);
 }
 export const TextLiteral = 'TextLiteral';
 export function isTextLiteral(item) {
@@ -96,7 +112,7 @@ export function isWhileStatement(item) {
 }
 export class OrunmilangAstReflection extends langium.AbstractAstReflection {
     getAllTypes() {
-        return [AdditiveExpression, BooleanLiteral, EqualityExpression, Expression, IfStatement, LogicalAndExpression, LogicalOrExpression, MultiplicativeExpression, NumericLiteral, PrimaryExpression, PrintStatement, PrintableValue, Program, RelationalExpression, Statement, TextLiteral, VariableAssignment, VariableDeclaration, VariableReference, WhileStatement];
+        return [AdditiveExpression, BooleanLiteral, EqualityExpression, Expression, FunctionCall, FunctionDeclaration, IfStatement, LogicalAndExpression, LogicalOrExpression, MultiplicativeExpression, NumericLiteral, Parameter, PrimaryExpression, PrintStatement, PrintableValue, Program, RelationalExpression, ReturnStatement, Statement, TextLiteral, VariableAssignment, VariableDeclaration, VariableReference, WhileStatement];
     }
     computeIsSubtype(subtype, supertype) {
         switch (subtype) {
@@ -109,8 +125,13 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
             case Expression: {
                 return this.isSubtype(PrimaryExpression, supertype);
             }
+            case FunctionCall: {
+                return this.isSubtype(PrimaryExpression, supertype) || this.isSubtype(PrintableValue, supertype) || this.isSubtype(Statement, supertype);
+            }
+            case FunctionDeclaration:
             case IfStatement:
             case PrintStatement:
+            case ReturnStatement:
             case VariableAssignment:
             case VariableDeclaration:
             case WhileStatement: {
@@ -127,6 +148,9 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
     getReferenceType(refInfo) {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
+            case 'FunctionCall:ref': {
+                return FunctionDeclaration;
+            }
             case 'VariableAssignment:variable':
             case 'VariableReference:variable': {
                 return VariableDeclaration;
@@ -163,6 +187,25 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
                         { name: 'left' },
                         { name: 'op', defaultValue: [] },
                         { name: 'rights', defaultValue: [] }
+                    ]
+                };
+            }
+            case FunctionCall: {
+                return {
+                    name: FunctionCall,
+                    properties: [
+                        { name: 'arguments', defaultValue: [] },
+                        { name: 'ref' }
+                    ]
+                };
+            }
+            case FunctionDeclaration: {
+                return {
+                    name: FunctionDeclaration,
+                    properties: [
+                        { name: 'name' },
+                        { name: 'parameters', defaultValue: [] },
+                        { name: 'statements', defaultValue: [] }
                     ]
                 };
             }
@@ -212,6 +255,14 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
                     ]
                 };
             }
+            case Parameter: {
+                return {
+                    name: Parameter,
+                    properties: [
+                        { name: 'name' }
+                    ]
+                };
+            }
             case PrintStatement: {
                 return {
                     name: PrintStatement,
@@ -235,6 +286,14 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
                         { name: 'left' },
                         { name: 'op', defaultValue: [] },
                         { name: 'rights', defaultValue: [] }
+                    ]
+                };
+            }
+            case ReturnStatement: {
+                return {
+                    name: ReturnStatement,
+                    properties: [
+                        { name: 'value' }
                     ]
                 };
             }

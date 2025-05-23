@@ -1,3 +1,5 @@
+// src/cli/generator.ts
+
 import type { Program } from '../language/generated/ast.js';
 import { expandToNode, joinToNode, toString } from 'langium/generate';
 import * as fs from 'node:fs';
@@ -8,69 +10,8 @@ export function generateJavaScript(program: Program, filePath: string, destinati
     const data = extractDestinationAndName(filePath, destination);
     const generatedFilePath = `${path.join(data.destination, data.name)}.js`;
 
-    // Existing statements
-    const declarations = program.statements
-        .filter(stmt => stmt.$type === 'VariableDeclaration')
-        .map(stmt => {
-            const decl = stmt as any;
-            return `let ${decl.name} = ${valueToString(decl.value)};`;
-        });
-
-    const assignments = program.statements
-        .filter(stmt => stmt.$type === 'VariableAssignment')
-        .map(stmt => {
-            const assign = stmt as any;
-            return `${assign.variable?.ref?.name ?? 'undefined'} = ${valueToString(assign.value)};`;
-        });
-
-    const prints = program.statements
-        .filter(stmt => stmt.$type === 'PrintStatement')
-        .map(stmt => {
-            const print = stmt as any;
-            return `console.log(${valueToString(print.value)});`;
-        });
-
-    // New: If Statements
-    const ifStatements = program.statements
-        .filter(stmt => stmt.$type === 'IfStatement')
-        .map(stmt => {
-            const ifStmt = stmt as any;
-            const condition = valueToString(ifStmt.condition);
-            // assuming ifStmt.thenBlock.statements is an array of statements inside if
-            const thenStatements = ifStmt.thenBlock.statements
-                .map((s: any) => statementToString(s))
-                .join('\n');
-            let elseStatements = '';
-            if (ifStmt.elseBlock) {
-                elseStatements = ifStmt.elseBlock.statements
-                    .map((s: any) => statementToString(s))
-                    .join('\n');
-                return `if (${condition}) {\n${thenStatements}\n} else {\n${elseStatements}\n}`;
-            }
-            return `if (${condition}) {\n${thenStatements}\n}`;
-        });
-
-    // New: While Statements
-    const whileStatements = program.statements
-        .filter(stmt => stmt.$type === 'WhileStatement')
-        .map(stmt => {
-            const whileStmt = stmt as any;
-            const condition = valueToString(whileStmt.condition);
-            const bodyStatements = whileStmt.body.statements
-                .map((s: any) => statementToString(s))
-                .join('\n');
-            return `while (${condition}) {\n${bodyStatements}\n}`;
-        });
-
-
-    // Combine all statements into one output node
-    const allStatements = [
-        ...declarations,
-        ...assignments,
-        ...prints,
-        ...ifStatements,
-        ...whileStatements,
-    ];
+    // Generate all statements
+    const allStatements = program.statements.map(stmt => statementToString(stmt));
 
     const fileNode = expandToNode`
         "use strict";
@@ -97,38 +38,80 @@ function statementToString(stmt: any): string {
             return `console.log(${valueToString(stmt.value)});`;
         case 'IfStatement': {
             const condition = valueToString(stmt.condition);
-            const thenBlock = stmt.thenBlock.statements.map(statementToString).join('\n');
+            const thenBlock = stmt.statements.map(statementToString).join('\n');
             let elseBlock = '';
-            if (stmt.elseBlock) {
-                elseBlock = stmt.elseBlock.statements.map(statementToString).join('\n');
+            if (stmt.elseStatements?.length > 0) {
+                elseBlock = stmt.elseStatements.map(statementToString).join('\n');
                 return `if (${condition}) {\n${thenBlock}\n} else {\n${elseBlock}\n}`;
             }
             return `if (${condition}) {\n${thenBlock}\n}`;
         }
         case 'WhileStatement': {
             const condition = valueToString(stmt.condition);
-            const body = stmt.body.statements.map(statementToString).join('\n');
+            const body = stmt.statements.map(statementToString).join('\n');
             return `while (${condition}) {\n${body}\n}`;
         }
-      
-        // Add more cases here for other statement types
+        case 'FunctionDeclaration': {
+            const params = stmt.parameters.map((param: any) => param.name).join(', ');
+            const body = stmt.statements.map(statementToString).join('\n');
+            return `function ${stmt.name}(${params}) {\n${body}\n}`;
+        }
+        case 'FunctionCall': { // Handle both expression and statement contexts
+            const funcName = stmt.ref?.name ?? 'undefined';
+            const args = stmt.arguments?.map((arg: any) => valueToString(arg)).join(', ') ?? '';
+            return `${funcName}(${args})`;  // Semicolon added at Statement level
+
+        }
+        case 'ReturnStatement': {
+            return stmt.value ? `return ${valueToString(stmt.value)};` : 'return;';
+        }
         default:
-            return '// Unsupported statement: ' + stmt.$type;
+            return `// Unsupported statement: ${stmt.$type}`;
     }
 }
 
+// Helper to convert any value or expression to JS code string
 function valueToString(value: any): string {
     if (!value) return 'undefined';
     switch (value.$type) {
         case 'TextLiteral':
-            return `"${value.value}"`;
+            return `"${value.value.replace(/"/g, '\\"')}"`; // Escape quotes
         case 'NumericLiteral':
             return value.value.toString();
         case 'BooleanLiteral':
-            return value.value ? 'true' : 'false';
+            return value.bool === 'bẹẹni' ? 'true' : 'false';
         case 'VariableReference':
-            return value.name?.ref?.name || value.name?.error?.message || 'undefined';
-        // Add support for other literal types like ListLiteral if needed
+            return value.variable?.ref?.name ?? 'undefined';
+        case 'FunctionCall':
+            const funcName = value.ref?.ref?.name ?? 'undefined';
+            const args = value.arguments?.map((arg: any) => valueToString(arg)).join(', ') ?? '';
+            return `${funcName}(${args})`;
+        case 'LogicalOrExpression':
+            return `${valueToString(value.left)} || ${value.rights?.map((r: any) => valueToString(r)).join(' || ')}`;
+        case 'LogicalAndExpression':
+            return `${valueToString(value.left)} && ${value.rights?.map((r: any) => valueToString(r)).join(' && ')}`;
+        case 'EqualityExpression':
+            return `${valueToString(value.left)} ${value.op[0]} ${value.rights?.map((r: any) => valueToString(r)).join(` ${value.op[0]} `)}`;
+        case 'RelationalExpression':
+            return `${valueToString(value.left)} ${value.op[0]} ${value.rights?.map((r: any) => valueToString(r)).join(` ${value.op[0]} `)}`;
+        case 'AdditiveExpression':
+            return value.rights?.reduce(
+                (acc: string, right: any, i: number) => `${acc} ${value.op[i]} ${valueToString(right)}`,
+                valueToString(value.left)
+            ) ?? valueToString(value.left);
+        case 'MultiplicativeExpression':
+            return value.rights?.reduce(
+                (acc: string, right: any, i: number) => `${acc} ${value.op[i]} ${valueToString(right)}`,
+                valueToString(value.left)
+            ) ?? valueToString(value.left);
+        case 'PrimaryExpression':
+            if (value.BooleanLiteral) return valueToString(value.BooleanLiteral);
+            if (value.NumericLiteral) return valueToString(value.NumericLiteral);
+            if (value.TextLiteral) return valueToString(value.TextLiteral);
+            if (value.VariableReference) return valueToString(value.VariableReference);
+            if (value.FunctionCall) return valueToString(value.FunctionCall);
+            if (value.Expression) return `(${valueToString(value.Expression)})`;
+            return 'undefined';
         default:
             return 'undefined';
     }

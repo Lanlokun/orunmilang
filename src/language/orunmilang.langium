@@ -1,95 +1,106 @@
-    grammar Orunmilang
+grammar Orunmilang
+
+entry Program:
+    statements+=Statement*;
+
+Statement:
+    VariableDeclaration ';'
+    | VariableAssignment ';'
+    | PrintStatement ';'
+    | IfStatement
+    | WhileStatement
+    | FunctionDeclaration
+    | ReturnStatement ';'
+    | FunctionCall ';';  // Changed from FunctionCallStatement to FunctionCall
+
+VariableDeclaration:
+    'pa' name=ID 'pẹlu' value=Expression;
+
+VariableAssignment:
+    variable=[VariableDeclaration] 'fi' value=Expression;
+
+PrintStatement:
+    'tẹ' '(' value=PrintableValue ')';
 
 
-    entry Program:
-        statements+=Statement*;
+IfStatement:
+    'ti' '(' condition=Expression ')' ('ṣe')? '{' statements+=Statement* '}'
+    ('bí' 'kò' 'ṣe' '{' elseStatements+=Statement* '}')?;
 
-    Statement:
-        VariableDeclaration ';'
-        | VariableAssignment ';'
-        | PrintStatement ';'
-        | IfStatement
-        | WhileStatement;
+WhileStatement:
+    'nigba' '(' condition=Expression ')' 'ṣe' '{' statements+=Statement* '}';
 
-    VariableDeclaration:
-        'pa' name=ID 'pẹlu' value=(TextLiteral | NumericLiteral | BooleanLiteral);
+FunctionDeclaration:
+    'iṣẹ' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')' '{' statements+=Statement* '}';
 
-    VariableAssignment:
-        variable=[VariableDeclaration] 'fi' value=(PrintableValue | Expression);
+Parameter:
+    name=ID;
 
-    PrintStatement:
-        'tẹ' '(' value=PrintableValue ')';
+ReturnStatement:
+    'pada' (value=Expression)?;
 
-    IfStatement:
-        'ti' '(' condition=Expression ')' 'ṣe' '{' statements+=Statement* '}'
-        ('bí' 'kò' 'ṣe' '{' elseStatements+=Statement* '}')?;
+FunctionCall:
+    'pe' ref=[FunctionDeclaration] '(' (arguments+=Expression (',' arguments+=Expression)*)? ')';
 
-    WhileStatement:
-        'nigba' '(' condition=Expression ')' 'ṣe' '{' statements+=Statement* '}';
+Expression:
+    LogicalOrExpression;
 
+LogicalOrExpression:
+    left=LogicalAndExpression
+    ( 'tabi' rights+=LogicalAndExpression )*;
 
-    Expression:
-        LogicalOrExpression;
+LogicalAndExpression:
+    left=EqualityExpression
+    ( 'ati' rights+=EqualityExpression )*;
 
-    LogicalOrExpression:
-        left=LogicalAndExpression
-        ( 'tabi' rights+=LogicalAndExpression )*;
+EqualityExpression:
+    left=RelationalExpression
+    ( (op+=('==' | '!=')) rights+=RelationalExpression )*;
 
-    LogicalAndExpression:
-        left=EqualityExpression
-        ( 'ati' rights+=EqualityExpression )*;
+RelationalExpression:
+    left=AdditiveExpression
+    ( (op+=('<' | '<=' | '>' | '>=')) rights+=AdditiveExpression )*;
 
-        
-    EqualityExpression:
-        left=RelationalExpression
-        ( (op+=('==' | '!=')) rights+=RelationalExpression )*;
+AdditiveExpression:
+    left=MultiplicativeExpression
+    ( (op+=('+' | '-')) rights+=MultiplicativeExpression )*;
 
+MultiplicativeExpression:
+    left=PrimaryExpression
+    ( (op+=('*' | '/')) rights+=PrimaryExpression )*;
 
-    RelationalExpression:
-        left=AdditiveExpression
-        ( (op+=('<' | '<=' | '>' | '>=')) rights+=AdditiveExpression )*;
+PrimaryExpression:
+    NumericLiteral
+    | TextLiteral
+    | BooleanLiteral
+    | VariableReference
+    | FunctionCall
+    | '(' Expression ')';
 
-    AdditiveExpression:
-        left=MultiplicativeExpression
-        ( (op+=('+' | '-')) rights+=MultiplicativeExpression )*;
+PrintableValue:
+    TextLiteral | NumericLiteral | BooleanLiteral | VariableReference | FunctionCall;
 
-    MultiplicativeExpression:
-        left=PrimaryExpression
-        ( (op+=('*' | '/')) rights+=PrimaryExpression )*;
+TextLiteral:
+    value=STRING;
 
-    PrimaryExpression:
-        NumericLiteral
-        | TextLiteral
-        | BooleanLiteral
-        | VariableReference
-        | '(' Expression ')';
+NumericLiteral:
+    value=NUMBER;
 
-    PrintableValue:
-        TextLiteral | NumericLiteral | BooleanLiteral | VariableReference;
+VariableReference:
+    variable=[VariableDeclaration];
 
-    TextLiteral:
-        value=STRING;
+terminal BEE_NI: 'bẹẹni';
+terminal RARA: 'rara';
 
-    NumericLiteral:
-        value=NUMBER;
+BooleanLiteral:
+    bool=BEE_NI | bool=RARA;
 
-    VariableReference:
-        variable=[VariableDeclaration];
+terminal ID: /[a-zA-ZẹọṣàáèéìíòóùúẸỌṢÀÁÈÉÌÍÒÓÙÚ_][a-zA-Z0-9ẹọṣàáèéìíòóùúẸỌṢÀÁÈÉÌÍÒÓÙÚ_]*/;
 
+terminal NUMBER: /[-]?[0-9]+(\.[0-9]+)?/;
 
-    terminal BEE_NI: 'bẹẹni';
-    terminal RARA: 'rara';
+terminal STRING: /"([^"\\]|\\.)*"|'([^'\\]|\\.)*'/;
 
-
-    BooleanLiteral:
-        bool=BEE_NI | bool=RARA;
-
-    terminal ID: /[a-zA-ZẹọṣàáèéìíòóùúẸỌṢÀÁÈÉÌÍÒÓÙÚ_][a-zA-Z0-9ẹọṣàáèéìíòóùúẸỌṢÀÁÈÉÌÍÒÓÙÚ_]*/;
-
-    terminal NUMBER: /[-]?[0-9]+(\.[0-9]+)?/;
-
-    terminal STRING: /"([^"\\]|\\.)*"|'([^'\\]|\\.)*'/;
-
-    hidden terminal WS: /\s+/;
-    hidden terminal ML_COMMENT: /\/\*[^*]*\*+([^/*][^*]*\*+)*\//;
-    hidden terminal SL_COMMENT: /\/\/.*/;
+hidden terminal WS: /\s+/;
+hidden terminal ML_COMMENT: /\/\*[^*]*\*+([^/*][^*]*\*+)*\//;
+hidden terminal SL_COMMENT: /\/\/.*/;
