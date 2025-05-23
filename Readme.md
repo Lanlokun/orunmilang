@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lanlokun/orunmilang/main/images/orunmilang.png" alt="Orunmilang Logo" width="100"/>
+  <img src="https://raw.githubusercontent.com/lanlokun/orunmilang/main/images/orunmilang.png" alt="Orunmilang Logo" width="150"/>
 </p>
 
 # Orunmilang
