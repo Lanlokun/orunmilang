@@ -86,8 +86,13 @@ TextLiteral:
 NumericLiteral:
     value=NUMBER;
 
+
+NamedElement:
+    VariableDeclaration | Parameter;
+
 VariableReference:
-    variable=[VariableDeclaration];
+    variable=[NamedElement];
+
 
 terminal BEE_NI: 'bẹẹni';
 terminal RARA: 'rara';

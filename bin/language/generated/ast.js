@@ -18,6 +18,10 @@ export const Expression = 'Expression';
 export function isExpression(item) {
     return reflection.isInstance(item, Expression);
 }
+export const NamedElement = 'NamedElement';
+export function isNamedElement(item) {
+    return reflection.isInstance(item, NamedElement);
+}
 export const PrimaryExpression = 'PrimaryExpression';
 export function isPrimaryExpression(item) {
     return reflection.isInstance(item, PrimaryExpression);
@@ -112,7 +116,7 @@ export function isWhileStatement(item) {
 }
 export class OrunmilangAstReflection extends langium.AbstractAstReflection {
     getAllTypes() {
-        return [AdditiveExpression, BooleanLiteral, EqualityExpression, Expression, FunctionCall, FunctionDeclaration, IfStatement, LogicalAndExpression, LogicalOrExpression, MultiplicativeExpression, NumericLiteral, Parameter, PrimaryExpression, PrintStatement, PrintableValue, Program, RelationalExpression, ReturnStatement, Statement, TextLiteral, VariableAssignment, VariableDeclaration, VariableReference, WhileStatement];
+        return [AdditiveExpression, BooleanLiteral, EqualityExpression, Expression, FunctionCall, FunctionDeclaration, IfStatement, LogicalAndExpression, LogicalOrExpression, MultiplicativeExpression, NamedElement, NumericLiteral, Parameter, PrimaryExpression, PrintStatement, PrintableValue, Program, RelationalExpression, ReturnStatement, Statement, TextLiteral, VariableAssignment, VariableDeclaration, VariableReference, WhileStatement];
     }
     computeIsSubtype(subtype, supertype) {
         switch (subtype) {
@@ -133,12 +137,17 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
             case PrintStatement:
             case ReturnStatement:
             case VariableAssignment:
-            case VariableDeclaration:
             case WhileStatement: {
                 return this.isSubtype(Statement, supertype);
             }
             case LogicalOrExpression: {
                 return this.isSubtype(Expression, supertype);
+            }
+            case Parameter: {
+                return this.isSubtype(NamedElement, supertype);
+            }
+            case VariableDeclaration: {
+                return this.isSubtype(NamedElement, supertype) || this.isSubtype(Statement, supertype);
             }
             default: {
                 return false;
@@ -151,9 +160,11 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
             case 'FunctionCall:ref': {
                 return FunctionDeclaration;
             }
-            case 'VariableAssignment:variable':
-            case 'VariableReference:variable': {
+            case 'VariableAssignment:variable': {
                 return VariableDeclaration;
+            }
+            case 'VariableReference:variable': {
+                return NamedElement;
             }
             default: {
                 throw new Error(`${referenceId} is not a valid reference id.`);

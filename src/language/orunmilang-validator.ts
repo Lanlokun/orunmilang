@@ -16,6 +16,7 @@ import type {
     FunctionDeclaration,
     ReturnStatement,
     FunctionCall,
+    Statement
 } from './generated/ast.js';
 import type { OrunmilangServices } from './orunmilang-module.js';
 
@@ -196,13 +197,33 @@ export class OrunmilangValidator {
         }
 
         // Check for empty function body
-        if (!func.statements || func.statements.length === 0) {
-            accept('warning', 'Function body is empty', {
-                node: func,
-                property: 'statements'
-            });
+       if (func.statements && func.statements.length > 0) {
+            const hasReturn = this.checkAllPathsReturn(func.statements);
+            if (!hasReturn) {
+                accept('warning', 'Function may not return a value in all code paths', {
+                    node: func,
+                    property: 'statements'
+                });
+            }
         }
     }
+
+    private checkAllPathsReturn(statements: Statement[]): boolean {
+    for (let i = statements.length - 1; i >= 0; i--) {
+        const stmt = statements[i];
+        if (stmt.$type === 'ReturnStatement') {
+            return true;
+        }
+        if (stmt.$type === 'IfStatement') {
+            const thenReturns = this.checkAllPathsReturn(stmt.statements);
+            const elseReturns = stmt.elseStatements 
+                ? this.checkAllPathsReturn(stmt.elseStatements)
+                : false;
+            return thenReturns && elseReturns;
+        }
+    }
+    return false;
+}
 
     checkReturnStatement(returnStmt: ReturnStatement, accept: ValidationAcceptor): void {
         // Ensure return statement is inside a function
@@ -223,6 +244,18 @@ export class OrunmilangValidator {
             accept('error', 'Return statement must be inside a function', {
                 node: returnStmt
             });
+        }
+        const container = returnStmt.$container;
+        if (container && 'statements' in container) {
+            const statements = container.statements;
+            const lastIndex = statements.length - 1;
+            const returnIndex = statements.indexOf(returnStmt);
+            
+            if (returnIndex < lastIndex) {
+                accept('warning', 'Code after return statement will never execute', {
+                    node: returnStmt
+                });
+            }
         }
     }
 
