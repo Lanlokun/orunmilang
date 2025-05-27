@@ -1,13 +1,18 @@
 
 // src/language/orunmilang-interpreter.ts
 
-        function safeStringify(obj: any, space?: number): string {
-            const replacer = (key: string, value: any) => {
-                if (key === '$container' || key === '$cstNode' || key === 'root' || key === 'container') return undefined;
-                return value;
-            };
-            return JSON.stringify(obj, replacer, space);
-        }
+    function safeStringify(obj: any, space?: number): string {
+        const seen = new WeakSet();
+        return JSON.stringify(obj, (key, value) => {
+            if (key === '$container' || key === '$cstNode' || key === 'root' || key === 'container') return undefined;
+            if (typeof value === 'object' && value !== null) {
+                if (seen.has(value)) return undefined;
+                seen.add(value);
+            }
+            return value;
+        }, space);
+    }
+
 
         export function simulateExecution(program: any): string {
             const variables: Record<string, any> = {};
@@ -19,7 +24,13 @@
                 for (const statement of statements) {
                     switch (statement.$type) {
                         case 'VariableDeclaration':
-                            localVars[statement.name] = getValue(statement.value, localVars);
+                            if (statement.value) {
+                                localVars[statement.name] = getValue(statement.value, localVars);
+                            } else if (statement.array) {
+                                localVars[statement.name] = evaluateExpression(statement.array, localVars);
+                            } else {
+                                outputBuffer += `⚠️ Variable declaration ${statement.name} missing value or array\n`;
+                            }
                             break;
 
                         case 'VariableAssignment':
@@ -35,7 +46,30 @@
                             outputBuffer += stringify(output) + '\n';
                             break;
 
-                       case 'IfStatement':
+                        case 'ArrayAssignment': {
+                            const arrayRef = statement.array.ref ? { 
+                                $type: 'VariableReference', 
+                                variable: statement.array 
+                            } : statement.array;
+                            
+                            const arr = evaluateExpression(arrayRef, localVars);
+                            const idx = evaluateExpression(statement.index, localVars);
+                            
+                            if (!Array.isArray(arr)) {
+                                outputBuffer += `⚠️ Cannot assign to non-array value.\n`;
+                                break;
+                            }
+                            if (typeof idx !== 'number' || !Number.isInteger(idx)) {
+                                outputBuffer += `⚠️ Array index must be an integer.\n`;
+                                break;
+                            }
+                            
+                            const val = getValue(statement.value, localVars);
+                            arr[idx] = val;
+                            break;
+                        }
+
+                        case 'IfStatement':
                             if (!statement.condition || !statement.condition.$type) {
                                 console.error('Invalid IfStatement condition:', {
                                     $type: statement.condition?.$type,
@@ -169,6 +203,28 @@
                     case 'NotExpr':
                         return !evaluateExpression(expr.expression, variables);
 
+                    case 'ArrayLiteral': {
+                        // Evaluate each element and return as JS array
+                        return (expr.elements ?? []).map((el: any) => evaluateExpression(el, variables));
+                    }
+
+                    case 'ArrayAccess': {
+                        const arrayRef = expr.array.ref ? { 
+                            $type: 'VariableReference', 
+                            variable: expr.array 
+                        } : expr.array;
+                        
+                        const arr = evaluateExpression(arrayRef, variables);
+                        const idx = evaluateExpression(expr.index, variables);
+                        
+                        if (!Array.isArray(arr)) {
+                            throw new Error(`Attempting to index a non-array value: ${safeStringify(arr)}`);
+                        }
+                        if (typeof idx !== 'number' || !Number.isInteger(idx)) {
+                            throw new Error(`Array index must be an integer, got: ${idx}`);
+                        }
+                        return arr[idx];
+                    }
 
                     case 'RelationalExpression':
                         if (!expr.left) {

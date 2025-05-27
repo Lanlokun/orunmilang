@@ -21,7 +21,7 @@ export function generateJavaScript(program, filePath, destination) {
 function statementToString(stmt) {
     switch (stmt.$type) {
         case 'VariableDeclaration':
-            return `let ${stmt.name} = ${valueToString(stmt.value)};`;
+            return `let ${stmt.name} = ${stmt.value ? valueToString(stmt.value) : valueToString(stmt.array)};`;
         case 'VariableAssignment':
             return `${stmt.variable?.ref?.name ?? 'undefined'} = ${valueToString(stmt.value)};`;
         case 'PrintStatement':
@@ -61,6 +61,12 @@ function statementToString(stmt) {
             const args = stmt.arguments?.map((arg) => valueToString(arg)).join(', ') ?? '';
             return `${funcName}(${args});`;
         }
+        case 'ArrayAssignment': {
+            const arrayName = stmt.array?.ref?.name ?? 'undefined';
+            const index = valueToString(stmt.index);
+            const value = valueToString(stmt.value);
+            return `${arrayName}[${index}] = ${value};`;
+        }
         case 'ReturnStatement': {
             return stmt.value ? `return ${valueToString(stmt.value)};` : 'return;';
         }
@@ -78,6 +84,10 @@ function valueToString(value) {
             return value.value.toString();
         case 'BooleanLiteral':
             return value.bool === 'bẹẹni' ? 'true' : 'false';
+        case 'ArrayLiteral': {
+            const elements = value.elements.map((el) => valueToString(el)).join(', ');
+            return `[${elements}]`;
+        }
         case 'VariableReference':
             return value.variable?.ref?.name ?? 'undefined';
         case 'FunctionCall':
@@ -98,6 +108,11 @@ function valueToString(value) {
             return value.rights?.reduce((acc, right, i) => `${acc} ${value.op[i]} ${valueToString(right)}`, valueToString(value.left)) ?? valueToString(value.left);
         case 'NotExpr':
             return `!${valueToString(value.expression)}`;
+        case 'ArrayAccess': {
+            const arrayName = value.array?.ref?.name ?? 'undefined';
+            const index = valueToString(value.index);
+            return `${arrayName}[${index}]`;
+        }
         case 'PrimaryExpression':
             if (value.BooleanLiteral)
                 return valueToString(value.BooleanLiteral);

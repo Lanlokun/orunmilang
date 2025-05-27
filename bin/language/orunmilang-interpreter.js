@@ -1,11 +1,16 @@
 // src/language/orunmilang-interpreter.ts
 function safeStringify(obj, space) {
-    const replacer = (key, value) => {
+    const seen = new WeakSet();
+    return JSON.stringify(obj, (key, value) => {
         if (key === '$container' || key === '$cstNode' || key === 'root' || key === 'container')
             return undefined;
+        if (typeof value === 'object' && value !== null) {
+            if (seen.has(value))
+                return undefined;
+            seen.add(value);
+        }
         return value;
-    };
-    return JSON.stringify(obj, replacer, space);
+    }, space);
 }
 export function simulateExecution(program) {
     const variables = {};
@@ -16,7 +21,15 @@ export function simulateExecution(program) {
         for (const statement of statements) {
             switch (statement.$type) {
                 case 'VariableDeclaration':
-                    localVars[statement.name] = getValue(statement.value, localVars);
+                    if (statement.value) {
+                        localVars[statement.name] = getValue(statement.value, localVars);
+                    }
+                    else if (statement.array) {
+                        localVars[statement.name] = evaluateExpression(statement.array, localVars);
+                    }
+                    else {
+                        outputBuffer += `⚠️ Variable declaration ${statement.name} missing value or array\n`;
+                    }
                     break;
                 case 'VariableAssignment':
                     const varName = statement.variable?.$refText;
@@ -29,6 +42,25 @@ export function simulateExecution(program) {
                     const output = getValue(statement.value, localVars);
                     outputBuffer += stringify(output) + '\n';
                     break;
+                case 'ArrayAssignment': {
+                    const arrayRef = statement.array.ref ? {
+                        $type: 'VariableReference',
+                        variable: statement.array
+                    } : statement.array;
+                    const arr = evaluateExpression(arrayRef, localVars);
+                    const idx = evaluateExpression(statement.index, localVars);
+                    if (!Array.isArray(arr)) {
+                        outputBuffer += `⚠️ Cannot assign to non-array value.\n`;
+                        break;
+                    }
+                    if (typeof idx !== 'number' || !Number.isInteger(idx)) {
+                        outputBuffer += `⚠️ Array index must be an integer.\n`;
+                        break;
+                    }
+                    const val = getValue(statement.value, localVars);
+                    arr[idx] = val;
+                    break;
+                }
                 case 'IfStatement':
                     if (!statement.condition || !statement.condition.$type) {
                         console.error('Invalid IfStatement condition:', {
@@ -158,6 +190,25 @@ export function simulateExecution(program) {
                 return result;
             case 'NotExpr':
                 return !evaluateExpression(expr.expression, variables);
+            case 'ArrayLiteral': {
+                // Evaluate each element and return as JS array
+                return (expr.elements ?? []).map((el) => evaluateExpression(el, variables));
+            }
+            case 'ArrayAccess': {
+                const arrayRef = expr.array.ref ? {
+                    $type: 'VariableReference',
+                    variable: expr.array
+                } : expr.array;
+                const arr = evaluateExpression(arrayRef, variables);
+                const idx = evaluateExpression(expr.index, variables);
+                if (!Array.isArray(arr)) {
+                    throw new Error(`Attempting to index a non-array value: ${safeStringify(arr)}`);
+                }
+                if (typeof idx !== 'number' || !Number.isInteger(idx)) {
+                    throw new Error(`Array index must be an integer, got: ${idx}`);
+                }
+                return arr[idx];
+            }
             case 'RelationalExpression':
                 if (!expr.left) {
                     throw new Error(`RelationalExpression missing left operand at line ${expr.$cstNode?.range?.start?.line || 'unknown'}`);

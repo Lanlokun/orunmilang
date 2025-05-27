@@ -48,13 +48,6 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@3"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
               "$ref": "#/rules@4"
             },
             "arguments": []
@@ -69,7 +62,14 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@8"
+              "$ref": "#/rules@24"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@6"
             },
             "arguments": []
           },
@@ -83,7 +83,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@11"
+              "$ref": "#/rules@10"
             },
             "arguments": []
           },
@@ -91,6 +91,13 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@12"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@13"
             },
             "arguments": []
           }
@@ -120,30 +127,124 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@31"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
           },
           {
-            "$type": "Keyword",
-            "value": "pẹlu"
-          },
-          {
-            "$type": "Assignment",
-            "feature": "value",
-            "operator": "=",
-            "terminal": {
-              "$type": "RuleCall",
-              "rule": {
-                "$ref": "#/rules@13"
+            "$type": "Alternatives",
+            "elements": [
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "pẹlu"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "value",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@14"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
               },
-              "arguments": []
-            }
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "="
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "array",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@3"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
+              }
+            ]
           },
           {
             "$type": "Keyword",
             "value": ";"
+          }
+        ]
+      },
+      "definesHiddenTokens": false,
+      "entry": false,
+      "fragment": false,
+      "hiddenTokens": [],
+      "parameters": [],
+      "wildcard": false
+    },
+    {
+      "$type": "ParserRule",
+      "name": "ArrayLiteral",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "["
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Assignment",
+                "feature": "elements",
+                "operator": "+=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@14"
+                  },
+                  "arguments": []
+                }
+              },
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": ","
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "elements",
+                    "operator": "+=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@14"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ],
+                "cardinality": "*"
+              }
+            ],
+            "cardinality": "?"
+          },
+          {
+            "$type": "Keyword",
+            "value": "]"
           }
         ]
       },
@@ -183,7 +284,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@13"
+                "$ref": "#/rules@14"
               },
               "arguments": []
             }
@@ -222,7 +323,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@23"
+                "$ref": "#/rules@26"
               },
               "arguments": []
             }
@@ -265,7 +366,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@13"
+                "$ref": "#/rules@14"
               },
               "arguments": []
             }
@@ -307,7 +408,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@6"
+                "$ref": "#/rules@7"
               },
               "arguments": []
             },
@@ -320,7 +421,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@7"
+                "$ref": "#/rules@8"
               },
               "arguments": []
             },
@@ -368,7 +469,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@13"
+                "$ref": "#/rules@14"
               },
               "arguments": []
             }
@@ -476,7 +577,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@13"
+                "$ref": "#/rules@14"
               },
               "arguments": []
             }
@@ -536,7 +637,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@31"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -555,7 +656,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@10"
+                    "$ref": "#/rules@11"
                   },
                   "arguments": []
                 }
@@ -574,7 +675,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@10"
+                        "$ref": "#/rules@11"
                       },
                       "arguments": []
                     }
@@ -629,7 +730,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@31"
+            "$ref": "#/rules@34"
           },
           "arguments": []
         }
@@ -658,7 +759,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@13"
+                "$ref": "#/rules@14"
               },
               "arguments": []
             },
@@ -694,7 +795,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "CrossReference",
               "type": {
-                "$ref": "#/rules@9"
+                "$ref": "#/rules@10"
               },
               "deprecatedSyntax": false
             }
@@ -713,7 +814,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@13"
+                    "$ref": "#/rules@14"
                   },
                   "arguments": []
                 }
@@ -732,7 +833,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@13"
+                        "$ref": "#/rules@14"
                       },
                       "arguments": []
                     }
@@ -762,7 +863,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
       "definition": {
         "$type": "RuleCall",
         "rule": {
-          "$ref": "#/rules@14"
+          "$ref": "#/rules@15"
         },
         "arguments": []
       },
@@ -786,7 +887,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@15"
+                "$ref": "#/rules@16"
               },
               "arguments": []
             }
@@ -805,7 +906,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@15"
+                    "$ref": "#/rules@16"
                   },
                   "arguments": []
                 }
@@ -835,7 +936,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@16"
+                "$ref": "#/rules@17"
               },
               "arguments": []
             }
@@ -854,7 +955,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@16"
+                    "$ref": "#/rules@17"
                   },
                   "arguments": []
                 }
@@ -884,7 +985,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@17"
+                "$ref": "#/rules@18"
               },
               "arguments": []
             }
@@ -917,7 +1018,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@17"
+                    "$ref": "#/rules@18"
                   },
                   "arguments": []
                 }
@@ -947,7 +1048,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@18"
+                "$ref": "#/rules@19"
               },
               "arguments": []
             }
@@ -988,7 +1089,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@18"
+                    "$ref": "#/rules@19"
                   },
                   "arguments": []
                 }
@@ -1018,7 +1119,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@19"
+                "$ref": "#/rules@20"
               },
               "arguments": []
             }
@@ -1051,7 +1152,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@19"
+                    "$ref": "#/rules@20"
                   },
                   "arguments": []
                 }
@@ -1081,7 +1182,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@21"
+                "$ref": "#/rules@22"
               },
               "arguments": []
             }
@@ -1118,7 +1219,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@21"
+                    "$ref": "#/rules@22"
                   },
                   "arguments": []
                 }
@@ -1152,7 +1253,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@21"
+                "$ref": "#/rules@22"
               },
               "arguments": []
             }
@@ -1175,16 +1276,130 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@20"
+              "$ref": "#/rules@21"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@22"
+              "$ref": "#/rules@25"
             },
             "arguments": []
+          }
+        ]
+      },
+      "definesHiddenTokens": false,
+      "entry": false,
+      "fragment": false,
+      "hiddenTokens": [],
+      "parameters": [],
+      "wildcard": false
+    },
+    {
+      "$type": "ParserRule",
+      "name": "ArrayAccess",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Assignment",
+            "feature": "array",
+            "operator": "=",
+            "terminal": {
+              "$type": "CrossReference",
+              "type": {
+                "$ref": "#/rules@29"
+              },
+              "deprecatedSyntax": false
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": "["
+          },
+          {
+            "$type": "Assignment",
+            "feature": "index",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@14"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": "]"
+          }
+        ]
+      },
+      "definesHiddenTokens": false,
+      "entry": false,
+      "fragment": false,
+      "hiddenTokens": [],
+      "parameters": [],
+      "wildcard": false
+    },
+    {
+      "$type": "ParserRule",
+      "name": "ArrayAssignment",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Assignment",
+            "feature": "array",
+            "operator": "=",
+            "terminal": {
+              "$type": "CrossReference",
+              "type": {
+                "$ref": "#/rules@29"
+              },
+              "deprecatedSyntax": false
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": "["
+          },
+          {
+            "$type": "Assignment",
+            "feature": "index",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@14"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": "]"
+          },
+          {
+            "$type": "Keyword",
+            "value": "fi"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "value",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@14"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": ";"
           }
         ]
       },
@@ -1204,21 +1419,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@25"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@24"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@30"
+              "$ref": "#/rules@28"
             },
             "arguments": []
           },
@@ -1232,7 +1433,35 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@12"
+              "$ref": "#/rules@33"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@23"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@3"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@30"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@13"
             },
             "arguments": []
           },
@@ -1246,7 +1475,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
               {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@13"
+                  "$ref": "#/rules@14"
                 },
                 "arguments": []
               },
@@ -1271,7 +1500,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
       "definition": {
         "$type": "RuleCall",
         "rule": {
-          "$ref": "#/rules@13"
+          "$ref": "#/rules@14"
         },
         "arguments": []
       },
@@ -1292,7 +1521,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@33"
+            "$ref": "#/rules@36"
           },
           "arguments": []
         }
@@ -1314,7 +1543,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@32"
+            "$ref": "#/rules@35"
           },
           "arguments": []
         }
@@ -1342,7 +1571,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@10"
+              "$ref": "#/rules@11"
             },
             "arguments": []
           }
@@ -1365,7 +1594,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
         "terminal": {
           "$type": "CrossReference",
           "type": {
-            "$ref": "#/rules@26"
+            "$ref": "#/rules@29"
           },
           "deprecatedSyntax": false
         }
@@ -1416,7 +1645,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@28"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -1428,7 +1657,7 @@ export const OrunmilangGrammar = () => loadedOrunmilangGrammar ?? (loadedOrunmil
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@29"
+                "$ref": "#/rules@32"
               },
               "arguments": []
             }

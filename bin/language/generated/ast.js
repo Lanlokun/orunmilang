@@ -42,6 +42,18 @@ export const AdditiveExpression = 'AdditiveExpression';
 export function isAdditiveExpression(item) {
     return reflection.isInstance(item, AdditiveExpression);
 }
+export const ArrayAccess = 'ArrayAccess';
+export function isArrayAccess(item) {
+    return reflection.isInstance(item, ArrayAccess);
+}
+export const ArrayAssignment = 'ArrayAssignment';
+export function isArrayAssignment(item) {
+    return reflection.isInstance(item, ArrayAssignment);
+}
+export const ArrayLiteral = 'ArrayLiteral';
+export function isArrayLiteral(item) {
+    return reflection.isInstance(item, ArrayLiteral);
+}
 export const BooleanLiteral = 'BooleanLiteral';
 export function isBooleanLiteral(item) {
     return reflection.isInstance(item, BooleanLiteral);
@@ -132,22 +144,19 @@ export function isWhileStatement(item) {
 }
 export class OrunmilangAstReflection extends langium.AbstractAstReflection {
     getAllTypes() {
-        return [AdditiveExpression, BooleanLiteral, ElseIfStatement, ElseStatement, EqualityExpression, Expression, FunctionCall, FunctionDeclaration, IfStatement, LogicalAndExpression, LogicalOrExpression, MultiplicativeExpression, NamedElement, NotExpr, NumericLiteral, Parameter, PrimaryExpression, PrintStatement, PrintableValue, Program, RelationalExpression, ReturnStatement, Statement, TextLiteral, UnaryExpression, VariableAssignment, VariableDeclaration, VariableReference, WhileStatement];
+        return [AdditiveExpression, ArrayAccess, ArrayAssignment, ArrayLiteral, BooleanLiteral, ElseIfStatement, ElseStatement, EqualityExpression, Expression, FunctionCall, FunctionDeclaration, IfStatement, LogicalAndExpression, LogicalOrExpression, MultiplicativeExpression, NamedElement, NotExpr, NumericLiteral, Parameter, PrimaryExpression, PrintStatement, PrintableValue, Program, RelationalExpression, ReturnStatement, Statement, TextLiteral, UnaryExpression, VariableAssignment, VariableDeclaration, VariableReference, WhileStatement];
     }
     computeIsSubtype(subtype, supertype) {
         switch (subtype) {
+            case ArrayAccess:
+            case ArrayLiteral:
             case BooleanLiteral:
             case NumericLiteral:
             case TextLiteral:
             case VariableReference: {
                 return this.isSubtype(PrimaryExpression, supertype);
             }
-            case Expression: {
-                return this.isSubtype(PrimaryExpression, supertype) || this.isSubtype(PrintableValue, supertype);
-            }
-            case FunctionCall: {
-                return this.isSubtype(PrimaryExpression, supertype) || this.isSubtype(Statement, supertype);
-            }
+            case ArrayAssignment:
             case FunctionDeclaration:
             case IfStatement:
             case PrintStatement:
@@ -155,6 +164,12 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
             case VariableAssignment:
             case WhileStatement: {
                 return this.isSubtype(Statement, supertype);
+            }
+            case Expression: {
+                return this.isSubtype(PrimaryExpression, supertype) || this.isSubtype(PrintableValue, supertype);
+            }
+            case FunctionCall: {
+                return this.isSubtype(PrimaryExpression, supertype) || this.isSubtype(Statement, supertype);
             }
             case LogicalOrExpression: {
                 return this.isSubtype(Expression, supertype);
@@ -177,14 +192,16 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
     getReferenceType(refInfo) {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
+            case 'ArrayAccess:array':
+            case 'ArrayAssignment:array':
+            case 'VariableReference:variable': {
+                return NamedElement;
+            }
             case 'FunctionCall:ref': {
                 return FunctionDeclaration;
             }
             case 'VariableAssignment:variable': {
                 return VariableDeclaration;
-            }
-            case 'VariableReference:variable': {
-                return NamedElement;
             }
             default: {
                 throw new Error(`${referenceId} is not a valid reference id.`);
@@ -200,6 +217,33 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
                         { name: 'left' },
                         { name: 'op', defaultValue: [] },
                         { name: 'rights', defaultValue: [] }
+                    ]
+                };
+            }
+            case ArrayAccess: {
+                return {
+                    name: ArrayAccess,
+                    properties: [
+                        { name: 'array' },
+                        { name: 'index' }
+                    ]
+                };
+            }
+            case ArrayAssignment: {
+                return {
+                    name: ArrayAssignment,
+                    properties: [
+                        { name: 'array' },
+                        { name: 'index' },
+                        { name: 'value' }
+                    ]
+                };
+            }
+            case ArrayLiteral: {
+                return {
+                    name: ArrayLiteral,
+                    properties: [
+                        { name: 'elements', defaultValue: [] }
                     ]
                 };
             }
@@ -375,6 +419,7 @@ export class OrunmilangAstReflection extends langium.AbstractAstReflection {
                 return {
                     name: VariableDeclaration,
                     properties: [
+                        { name: 'array' },
                         { name: 'name' },
                         { name: 'value' }
                     ]

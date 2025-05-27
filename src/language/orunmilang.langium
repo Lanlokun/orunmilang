@@ -7,6 +7,7 @@ Statement:
     VariableDeclaration
     | VariableAssignment
     | PrintStatement
+    | ArrayAssignment
     | IfStatement
     | WhileStatement
     | FunctionDeclaration
@@ -14,7 +15,11 @@ Statement:
     | FunctionCall;
 
 VariableDeclaration:
-    'pa' name=ID 'pẹlu' value=Expression ';';
+    'pa' name=ID ('pẹlu' value=Expression | '=' array=ArrayLiteral) ';';
+
+ArrayLiteral:
+    '[' (elements+=Expression (',' elements+=Expression)*)? ']';
+
 
 VariableAssignment:
     variable=[VariableDeclaration] 'fi' value=Expression ';';
@@ -81,10 +86,21 @@ NotExpr:
 UnaryExpression:
     NotExpr | PrimaryExpression;
 
+ArrayAccess:
+    array=[NamedElement] '[' index=Expression ']'
+;
+
+ArrayAssignment:
+    array=[NamedElement] '[' index=Expression ']' 'fi' value=Expression ';'
+;
+
+
 PrimaryExpression:
     NumericLiteral
     | TextLiteral
     | BooleanLiteral
+    | ArrayAccess
+    | ArrayLiteral
     | VariableReference
     | FunctionCall
     | '(' Expression ')';

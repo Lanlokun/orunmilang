@@ -11,6 +11,9 @@ import type {
     VariableAssignment,
     IfStatement,
     ElseIfStatement,
+    ArrayAssignment,
+    ArrayLiteral,
+    ArrayAccess,
     ElseStatement,
     WhileStatement,
     VariableReference,
@@ -300,6 +303,44 @@ export class OrunmilangValidator {
                     node: returnStmt
                 });
             }
+        }
+    }
+    checkArrayLiteral(array: ArrayLiteral, accept: ValidationAcceptor): void {
+        if (!array.elements || array.elements.length === 0) {
+            accept('warning', 'Array literal is empty', { node: array });
+        }
+
+        // Optional: Check for consistent element types
+        const elementTypes = array.elements.map(el => el.$type);
+        const firstType = elementTypes[0];
+        const inconsistent = elementTypes.some(t => t !== firstType);
+
+        if (inconsistent) {
+            accept('warning', 'Array elements are of mixed types', { node: array });
+        }
+    }
+
+    checkArrayAccess(access: ArrayAccess, accept: ValidationAcceptor): void {
+        if (!access.array) {
+            accept('error', 'Missing array reference in access expression', { node: access, property: 'array' });
+        }
+
+        if (!access.index) {
+            accept('error', 'Array access must include an index expression', { node: access, property: 'index' });
+        }
+    }
+
+    checkArrayAssignment(assign: ArrayAssignment, accept: ValidationAcceptor): void {
+        if (!assign.array) {
+            accept('error', 'Missing array reference in assignment', { node: assign, property: 'array' });
+        }
+
+        if (!assign.index) {
+            accept('error', 'Array assignment must include an index expression', { node: assign, property: 'index' });
+        }
+
+        if (!assign.value) {
+            accept('error', 'Array assignment must include a value', { node: assign, property: 'value' });
         }
     }
 
