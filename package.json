@@ -4,6 +4,8 @@
     "version": "0.0.1",
     "type": "module",
     "icon": "images/orunmilang.png",
+    "publisher": "MalikKolawoleLanlokun",
+
 
     "scripts": {
         "build": "tsc -b tsconfig.src.json && node esbuild.mjs && npm run build:cli",

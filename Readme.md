@@ -11,6 +11,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/lanlokun/orunmilang/issues)
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/MalikKolawoleLanlokun.orunmilang)](https://marketplace.visualstudio.com/items?itemName=MalikKolawoleLanlokun.orunmilang)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/MalikKolawoleLanlokun.orunmilang)](https://marketplace.visualstudio.com/items?itemName=MalikKolawoleLanlokun.orunmilang)
+[![Rating](https://img.shields.io/visual-studio-marketplace/stars/MalikKolawoleLanlokun.orunmilang)](https://marketplace.visualstudio.com/items?itemName=MalikKolawoleLanlokun.orunmilang)
+
 
 
 ## 🌍 Vision & Roadmap
@@ -33,6 +37,7 @@
 
 - Educational materials in Yoruba/English
 
+
 ## 🧩 Orunmilang for VS Code
 
 To enhance your development experience, **Orunmilang** is now available as a **Visual Studio Code extension**! This extension provides:
@@ -44,16 +49,22 @@ To enhance your development experience, **Orunmilang** is now available as a **V
 
 ### 🔧 Extension Installation
 
+#### Option 1: Marketplace Installation
 1. Open **Visual Studio Code**
 2. Go to the **Extensions** sidebar (`Ctrl+Shift+X`)
 3. Search for: `Orunmilang`
 4. Click **Install** on the extension by `lanlokun`
-5. Open or create a supported file (`.oru`, `.orun`, `.orunmilang`, or `.yo`) to get started!
 
-Or install directly from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=lanlokun.orunmilang).
+#### Option 2: Manual Installation via `.vsix`  
+If you've downloaded the `.vsix` file (e.g. `orunmilang-0.0.1.vsix`), install it using the command below:
 
-> 📝 **Supported File Extensions**: `.oru`, `.orun`, `.orunmilang`, `.yo`
+```bash
+code --install-extension orunmilang-0.0.1.vsix
+```
 
+Once installed, open or create a supported file (.oru, .orun, .orunmilang, or .yo) to get started!
+
+📝 Supported File Extensions: .oru, .orun, .orunmilang, .yo
 
 
 
