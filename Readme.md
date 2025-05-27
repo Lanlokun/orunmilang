@@ -33,6 +33,28 @@
 
 - Educational materials in Yoruba/English
 
+## 🧩 Orunmilang for VS Code
+
+To enhance your development experience, **Orunmilang** is now available as a **Visual Studio Code extension**! This extension provides:
+
+- ✅ Syntax highlighting  
+- ✅ Language snippets  
+- ✅ Error diagnostics  
+- ✅ Integrated language support  
+
+### 🔧 Extension Installation
+
+1. Open **Visual Studio Code**
+2. Go to the **Extensions** sidebar (`Ctrl+Shift+X`)
+3. Search for: `Orunmilang`
+4. Click **Install** on the extension by `lanlokun`
+5. Open or create a supported file (`.oru`, `.orun`, `.orunmilang`, or `.yo`) to get started!
+
+Or install directly from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=lanlokun.orunmilang).
+
+> 📝 **Supported File Extensions**: `.oru`, `.orun`, `.orunmilang`, `.yo`
+
+
 
 
 ## ✨ Features
