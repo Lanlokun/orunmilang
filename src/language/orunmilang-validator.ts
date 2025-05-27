@@ -96,11 +96,20 @@ export class OrunmilangValidator {
     }
 
     checkVariableDeclaration(declaration: VariableDeclaration, accept: ValidationAcceptor): void {
-        if (!declaration.value) {
-            accept('error', 'Variable declaration must have an initial value', { 
+        if (!declaration.value && !declaration.array) {
+            accept('error', 'Variable declaration must have an initial value (use "pẹlu" or "=" with array)', { 
                 node: declaration,
-                property: 'value'
+                property: 'name' // Point to the variable name for better error location
             });
+        }
+        
+        // Additional validation if you want
+        if (declaration.array) {
+            if (!declaration.array.elements || declaration.array.elements.length === 0) {
+                accept('warning', 'Array literal is empty', {
+                    node: declaration.array
+                });
+            }
         }
     }
 
@@ -169,25 +178,25 @@ export class OrunmilangValidator {
     }
 
     checkMultiplicativeExpression(expr: MultiplicativeExpression, accept: ValidationAcceptor): void {
-        const inferType = (e: any): string => {
-            switch (e.$type) {
-                case 'NumericLiteral': return 'number';
-                case 'TextLiteral': return 'string';
-                case 'BooleanLiteral': return 'boolean';
-                case 'VariableReference': return 'unknown';
-                case 'FunctionCall': return 'unknown';
-                default: return 'unknown';
-            }
+        const checkOperandType = (operand: any) => {
+            // Allow variables of unknown type (they'll be checked at runtime)
+            if (operand.$type === 'VariableReference') return true;
+            // Allow numeric literals
+            if (operand.$type === 'NumericLiteral') return true;
+            // Allow function calls (runtime check)
+            if (operand.$type === 'FunctionCall') return true;
+            return false;
         };
-
-        const leftType = inferType(expr.left);
-        const rightTypes = expr.rights?.map(r => inferType(r)) || [];
 
         for (let i = 0; i < (expr.op?.length || 0); i++) {
             const op = expr.op[i];
-            const rightType = rightTypes[i];
-            if (op === '%' && (leftType !== 'number' || rightType !== 'number')) {
-                accept('error', 'Modulo operator (%) requires numeric operands', { node: expr });
+            if (op === '%') {
+                if (!checkOperandType(expr.left)) {
+                    accept('warning', 'Left operand of modulo should be numeric', { node: expr.left });
+                }
+                if (expr.rights && !checkOperandType(expr.rights[i])) {
+                    accept('warning', 'Right operand of modulo should be numeric', { node: expr.rights[i] });
+                }
             }
         }
     }
